@@ -1,0 +1,11 @@
+---
+- name: Configuracion Basica del SO
+  hosts: all
+  gather_facts: true
+  become: true
+
+  tasks:
+    - name: Aplicar Role de Cnfiguraciones Basicas
+      ansible.builtin.include_role:
+        name: common
+      tags: ["common"]

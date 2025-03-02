@@ -1,2 +1,105 @@
 ---
 # tasks file for roles/common
+- name: Configuracion del Sistema
+  block:
+    - name: Configurar SELinux
+      ansible.posix.selinux:
+        state: "{{ selinux_state }}"
+        policy: "{{ selinux_policy }}"
+      register: selinux_config
+      failed_when: selinux_config is failed
+      notify: Reiniciar maquina si cambia SELinux
+
+    - name: Configurar Zona Horaria
+      community.general.timezone:
+        name: "{{ timezone }}"
+      register: timezone_config
+      failed_when: timezone_config is failed
+  rescue:
+    - name: Notificar fallo en la Configuracion FQDN
+      ansible.builtin.fail:
+        msg: "Fallo en la configuracion del FQDN, Proceso detenido"
+
+- name: Actualizar Dependencias y Paquetes del SO
+  block:
+    - name: Instalar dnf-utils y Paquetes viables si el gestor de paquetes es DNF
+      ansible.builtin.dnf:
+        name:
+          - dnf-utils
+        state: present
+        update_cache: true
+      when: ansible_pkg_mgr == 'dnf'
+      register: basic_packages
+      failed_when: basic_packages is failed
+
+    - name: Instalar yum-utils y Paquetes viables si el gestor de paquetes es YUM
+      ansible.builtin.yum:
+        name:
+          - yum-utils
+        state: present
+        update_cache: true
+      when: ansible_pkg_mgr == 'yum'
+      register: basic_packages
+      failed_when: basic_packages is failed
+
+    - name: Actualizar todos los paquetes del Servidor si el gestor de paquetes es DNF
+      ansible.builtin.dnf:
+        name:
+          - "*"
+        state: latest
+      when: ansible_pkg_mgr == 'dnf'
+      register: package_update
+      failed_when: package_update is failed
+
+    - name: Actualizar todos los paquetes del Servidor si el gestor de paquetes es YUM
+      ansible.builtin.dnf:
+        name:
+          - "*"
+        state: latest
+      when: ansible_pkg_mgr == 'yum'
+      register: package_update
+      failed_when: package_update is failed
+  rescue:
+    - name: NOtificar fallo en la configuracion SELinux
+      ansible.builtin.fail:
+        msg: "Fallo la actualzacion del Sistema del sistema."
+
+- name: Configuracion /etc/hosts
+  block:
+    #     - name: Obtener el nombre del Host actual
+    #       ansible.builtin.command:
+    #         cmd: hostname
+    #       register: current_hostname
+    #       changed_when: false
+    #
+    #     - name: Configurar el Hostname
+    #       ansible.builtin.hostname:
+    #         name: "{{ inventory_hostname }}.{{ domain_name }}" # VALIDAR VARS DEL DOMINIO
+    #       register: hostname_result
+    #       failed_when: hostname_result is failed
+    #       when: current_hostname.stdout != inventory_hostname + '.' + domain_name
+    #
+    #     - name: Verificar que el FQDN del servidor esta OK
+    #       ansible.builtin.command:
+    #         cmd: hostname -f
+    #       register: fqdn_check
+    #       changed_when: false
+    #      failed_when: fqdn_check.stdout != inventory_hostname + '.' + domain_name
+
+    - name: Configurar DNS Interno - /etc/hosts
+      ansible.builtin.blockinfile:
+        insertafter: EOF
+        path: /etc/hosts
+        block: |
+          {% for host in groups['postgresql_servers'] %}
+          {{ hostvars[host]['ansible_host'] }} {{ host }} {{ host }}.{{ domain_name }}
+          {% endfor %}
+          {{ virtual_ip }} ha-vip ha-vip.{{ domain_name }}
+        marker: "# ANSIBLE MANAGED BLOCK - POSTGRESQL"
+        state: present
+      register: hosts_file
+      failed_when: hosts_file is failed
+  rescue:
+    - name: Notificar fallo en la Configuracion /etc/hosts
+      ansible.builtin.fail:
+        msg: "Fallo en la configuracion del /etc/hosts, Proceso detenido"
