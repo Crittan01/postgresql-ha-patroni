@@ -86,17 +86,18 @@
     #       changed_when: false
     #      failed_when: fqdn_check.stdout != inventory_hostname + '.' + domain_name
 
-    - name: Configurar DNS Interno - /etc/hosts
-      ansible.builtin.blockinfile:
-        insertafter: EOF
+    - name: Obtener permisos actuales del - /etc/hosts
+      ansible.builtin.stat:
         path: /etc/hosts
-        block: |
-          {% for host in groups['postgresql_servers'] %}
-          {{ hostvars[host]['ansible_host'] }} {{ host }} {{ host }}.{{ domain_name }}
-          {% endfor %}
-          {{ virtual_ip }} ha-vip ha-vip.{{ domain_name }}
-        marker: "# ANSIBLE MANAGED BLOCK - POSTGRESQL"
-        state: present
+      register: hosts_stat
+
+    - name: Configurar DNS Interno - /etc/hosts
+      ansible.builtin.template:
+        src: hosts.j2
+        dest: /etc/hosts
+        owner: "{{ hosts_stat.stat.pw_name }}"
+        group: "{{ hosts_stat.stat.gr_name }}"
+        mode: "{{ hosts_stat.stat.mode }}"
       register: hosts_file
       failed_when: hosts_file is failed
   rescue:

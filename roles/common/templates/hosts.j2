@@ -1,0 +1,9 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+# ANSIBLE MANAGED - POSTGRESQL: PATRONI SERVERS
+{% for host in groups['postgresql_servers'] %}
+{{ hostvars[host]['ansible_host'] }} {{ host }} {{ host }}.{{ domain_name }}
+{% endfor %}
+{{ virtual_ip }} ha-vip ha-vip.{{ domain_name }}
+# ANSIBLE MANAGED - POSTGRESQL: PATRONI SERVERS
