@@ -1,2 +1,19 @@
 ---
 # vars file for roles/firewall
+firewall_ports:
+  - "5432/tcp" # PostgreSQL
+  - "6432/tcp" # PgBouncer
+  - "8008/tcp" # Patroni API
+  - "2379/tcp" # etcd cliente
+  - "2380/tcp" # etcd servidor
+  - "5000/tcp" # HAProxy primario
+  - "5001/tcp" # HAProxy réplicas
+  - "7000/tcp" # HAProxy stats
+  - "112/tcp" # Keepalived
+  - "5405/tcp" # Keepalived
+
+firewall_service:
+  - "http"
+
+firewall_rich_rule:
+  - 'rule protocol value="vrrp" accept'

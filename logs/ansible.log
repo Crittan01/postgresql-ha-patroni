@@ -1,0 +1,222 @@
+2025-03-03 21:42:44,100 p=10 u=root n=ansible | PLAY [Configuracion Basica del SO] *********************************************
+2025-03-03 21:42:44,134 p=10 u=root n=ansible | TASK [Gathering Facts] *********************************************************
+2025-03-03 21:42:44,134 p=10 u=root n=ansible | Monday 03 March 2025  21:42:44 +0000 (0:00:00.036)       0:00:00.036 ********** 
+2025-03-03 21:42:46,379 p=10 u=root n=ansible | ok: [oracle8node3]
+2025-03-03 21:42:46,510 p=10 u=root n=ansible | ok: [oracle8node2]
+2025-03-03 21:42:46,762 p=10 u=root n=ansible | ok: [oracle8node1]
+2025-03-03 21:42:46,798 p=10 u=root n=ansible | TASK [Aplicar Role de Configuraciones Firewall] ********************************
+2025-03-03 21:42:46,799 p=10 u=root n=ansible | Monday 03 March 2025  21:42:46 +0000 (0:00:02.664)       0:00:02.702 ********** 
+2025-03-03 21:42:46,859 p=10 u=root n=ansible | TASK [firewall : Instalar Firewall si el gestor de paquetes es DNF] ************
+2025-03-03 21:42:46,860 p=10 u=root n=ansible | Monday 03 March 2025  21:42:46 +0000 (0:00:00.060)       0:00:02.762 ********** 
+2025-03-03 21:42:59,444 p=10 u=root n=ansible | ok: [oracle8node2]
+2025-03-03 21:43:00,154 p=10 u=root n=ansible | ok: [oracle8node3]
+2025-03-03 21:43:01,060 p=10 u=root n=ansible | ok: [oracle8node1]
+2025-03-03 21:43:01,066 p=10 u=root n=ansible | TASK [firewall : Instalar Firewall si el gestor de paquetes es YUM] ************
+2025-03-03 21:43:01,066 p=10 u=root n=ansible | Monday 03 March 2025  21:43:01 +0000 (0:00:14.206)       0:00:16.969 ********** 
+2025-03-03 21:43:01,085 p=10 u=root n=ansible | skipping: [oracle8node1]
+2025-03-03 21:43:01,099 p=10 u=root n=ansible | skipping: [oracle8node2]
+2025-03-03 21:43:01,107 p=10 u=root n=ansible | skipping: [oracle8node3]
+2025-03-03 21:43:01,115 p=10 u=root n=ansible | TASK [firewall : Iniciar y Habilitar el servicio de firewalld] *****************
+2025-03-03 21:43:01,116 p=10 u=root n=ansible | Monday 03 March 2025  21:43:01 +0000 (0:00:00.049)       0:00:17.018 ********** 
+2025-03-03 21:43:02,420 p=10 u=root n=ansible | ok: [oracle8node3]
+2025-03-03 21:43:02,489 p=10 u=root n=ansible | ok: [oracle8node1]
+2025-03-03 21:43:02,497 p=10 u=root n=ansible | ok: [oracle8node2]
+2025-03-03 21:43:02,507 p=10 u=root n=ansible | TASK [firewall : Abrir Puertos necesarios para el CLuster] *********************
+2025-03-03 21:43:02,508 p=10 u=root n=ansible | Monday 03 March 2025  21:43:02 +0000 (0:00:01.391)       0:00:18.410 ********** 
+2025-03-03 21:43:05,120 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5432/tcp)
+2025-03-03 21:43:05,289 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5432/tcp)
+2025-03-03 21:43:05,491 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5432/tcp)
+2025-03-03 21:43:05,515 p=10 u=root n=ansible | ok: [oracle8node2] => (item=6432/tcp)
+2025-03-03 21:43:05,683 p=10 u=root n=ansible | ok: [oracle8node3] => (item=6432/tcp)
+2025-03-03 21:43:05,893 p=10 u=root n=ansible | ok: [oracle8node1] => (item=6432/tcp)
+2025-03-03 21:43:05,932 p=10 u=root n=ansible | ok: [oracle8node2] => (item=8008/tcp)
+2025-03-03 21:43:06,122 p=10 u=root n=ansible | ok: [oracle8node3] => (item=8008/tcp)
+2025-03-03 21:43:06,304 p=10 u=root n=ansible | ok: [oracle8node1] => (item=8008/tcp)
+2025-03-03 21:43:06,326 p=10 u=root n=ansible | ok: [oracle8node2] => (item=2379/tcp)
+2025-03-03 21:43:06,514 p=10 u=root n=ansible | ok: [oracle8node3] => (item=2379/tcp)
+2025-03-03 21:43:06,715 p=10 u=root n=ansible | ok: [oracle8node2] => (item=2380/tcp)
+2025-03-03 21:43:06,716 p=10 u=root n=ansible | ok: [oracle8node1] => (item=2379/tcp)
+2025-03-03 21:43:06,915 p=10 u=root n=ansible | ok: [oracle8node3] => (item=2380/tcp)
+2025-03-03 21:43:07,099 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5000/tcp)
+2025-03-03 21:43:07,101 p=10 u=root n=ansible | ok: [oracle8node1] => (item=2380/tcp)
+2025-03-03 21:43:07,316 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5000/tcp)
+2025-03-03 21:43:07,517 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5001/tcp)
+2025-03-03 21:43:07,534 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5000/tcp)
+2025-03-03 21:43:07,737 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5001/tcp)
+2025-03-03 21:43:07,933 p=10 u=root n=ansible | ok: [oracle8node2] => (item=7000/tcp)
+2025-03-03 21:43:07,958 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5001/tcp)
+2025-03-03 21:43:08,140 p=10 u=root n=ansible | ok: [oracle8node3] => (item=7000/tcp)
+2025-03-03 21:43:08,331 p=10 u=root n=ansible | ok: [oracle8node2] => (item=112/tcp)
+2025-03-03 21:43:08,380 p=10 u=root n=ansible | ok: [oracle8node1] => (item=7000/tcp)
+2025-03-03 21:43:08,523 p=10 u=root n=ansible | ok: [oracle8node3] => (item=112/tcp)
+2025-03-03 21:43:08,689 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5405/tcp)
+2025-03-03 21:43:08,782 p=10 u=root n=ansible | ok: [oracle8node1] => (item=112/tcp)
+2025-03-03 21:43:08,888 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5405/tcp)
+2025-03-03 21:43:09,161 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5405/tcp)
+2025-03-03 21:43:09,228 p=10 u=root n=ansible | PLAY RECAP *********************************************************************
+2025-03-03 21:43:09,228 p=10 u=root n=ansible | oracle8node1               : ok=4    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+2025-03-03 21:43:09,229 p=10 u=root n=ansible | oracle8node2               : ok=4    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+2025-03-03 21:43:09,229 p=10 u=root n=ansible | oracle8node3               : ok=4    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+2025-03-03 21:43:09,229 p=10 u=root n=ansible | Playbook run took 0 days, 0 hours, 0 minutes, 25 seconds
+2025-03-03 21:43:09,230 p=10 u=root n=ansible | Monday 03 March 2025  21:43:09 +0000 (0:00:06.722)       0:00:25.132 ********** 
+2025-03-03 21:43:09,230 p=10 u=root n=ansible | =============================================================================== 
+2025-03-03 21:43:09,231 p=10 u=root n=ansible | firewall : Instalar Firewall si el gestor de paquetes es DNF ----------- 14.21s
+2025-03-03 21:43:09,231 p=10 u=root n=ansible | firewall : Abrir Puertos necesarios para el CLuster --------------------- 6.72s
+2025-03-03 21:43:09,232 p=10 u=root n=ansible | Gathering Facts --------------------------------------------------------- 2.66s
+2025-03-03 21:43:09,232 p=10 u=root n=ansible | firewall : Iniciar y Habilitar el servicio de firewalld ----------------- 1.39s
+2025-03-03 21:43:09,233 p=10 u=root n=ansible | Aplicar Role de Configuraciones Firewall -------------------------------- 0.06s
+2025-03-03 21:43:09,233 p=10 u=root n=ansible | firewall : Instalar Firewall si el gestor de paquetes es YUM ------------ 0.05s
+2025-03-03 21:45:28,593 p=10 u=root n=ansible | PLAY [Configuracion Basica del SO] *********************************************
+2025-03-03 21:45:28,628 p=10 u=root n=ansible | TASK [Gathering Facts] *********************************************************
+2025-03-03 21:45:28,629 p=10 u=root n=ansible | Monday 03 March 2025  21:45:28 +0000 (0:00:00.037)       0:00:00.037 ********** 
+2025-03-03 21:45:30,976 p=10 u=root n=ansible | ok: [oracle8node3]
+2025-03-03 21:45:31,101 p=10 u=root n=ansible | ok: [oracle8node2]
+2025-03-03 21:45:31,157 p=10 u=root n=ansible | ok: [oracle8node1]
+2025-03-03 21:45:31,192 p=10 u=root n=ansible | TASK [Aplicar Role de Configuraciones Firewall] ********************************
+2025-03-03 21:45:31,192 p=10 u=root n=ansible | Monday 03 March 2025  21:45:31 +0000 (0:00:02.563)       0:00:02.600 ********** 
+2025-03-03 21:45:31,258 p=10 u=root n=ansible | TASK [firewall : Instalar Firewall si el gestor de paquetes es DNF] ************
+2025-03-03 21:45:31,258 p=10 u=root n=ansible | Monday 03 March 2025  21:45:31 +0000 (0:00:00.066)       0:00:02.666 ********** 
+2025-03-03 21:45:42,958 p=10 u=root n=ansible | ok: [oracle8node2]
+2025-03-03 21:45:43,704 p=10 u=root n=ansible | ok: [oracle8node1]
+2025-03-03 21:45:43,983 p=10 u=root n=ansible | ok: [oracle8node3]
+2025-03-03 21:45:43,990 p=10 u=root n=ansible | TASK [firewall : Instalar Firewall si el gestor de paquetes es YUM] ************
+2025-03-03 21:45:43,991 p=10 u=root n=ansible | Monday 03 March 2025  21:45:43 +0000 (0:00:12.732)       0:00:15.399 ********** 
+2025-03-03 21:45:44,015 p=10 u=root n=ansible | skipping: [oracle8node1]
+2025-03-03 21:45:44,030 p=10 u=root n=ansible | skipping: [oracle8node2]
+2025-03-03 21:45:44,038 p=10 u=root n=ansible | skipping: [oracle8node3]
+2025-03-03 21:45:44,044 p=10 u=root n=ansible | TASK [firewall : Iniciar y Habilitar el servicio de firewalld] *****************
+2025-03-03 21:45:44,045 p=10 u=root n=ansible | Monday 03 March 2025  21:45:44 +0000 (0:00:00.054)       0:00:15.453 ********** 
+2025-03-03 21:45:45,671 p=10 u=root n=ansible | ok: [oracle8node3]
+2025-03-03 21:45:45,738 p=10 u=root n=ansible | ok: [oracle8node1]
+2025-03-03 21:45:45,777 p=10 u=root n=ansible | ok: [oracle8node2]
+2025-03-03 21:45:45,785 p=10 u=root n=ansible | TASK [firewall : Abrir Puertos necesarios para el CLuster] *********************
+2025-03-03 21:45:45,785 p=10 u=root n=ansible | Monday 03 March 2025  21:45:45 +0000 (0:00:01.740)       0:00:17.193 ********** 
+2025-03-03 21:45:46,433 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5432/tcp)
+2025-03-03 21:45:46,437 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5432/tcp)
+2025-03-03 21:45:46,468 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5432/tcp)
+2025-03-03 21:45:46,826 p=10 u=root n=ansible | ok: [oracle8node2] => (item=6432/tcp)
+2025-03-03 21:45:46,843 p=10 u=root n=ansible | ok: [oracle8node3] => (item=6432/tcp)
+2025-03-03 21:45:46,862 p=10 u=root n=ansible | ok: [oracle8node1] => (item=6432/tcp)
+2025-03-03 21:45:47,240 p=10 u=root n=ansible | ok: [oracle8node2] => (item=8008/tcp)
+2025-03-03 21:45:47,289 p=10 u=root n=ansible | ok: [oracle8node3] => (item=8008/tcp)
+2025-03-03 21:45:47,316 p=10 u=root n=ansible | ok: [oracle8node1] => (item=8008/tcp)
+2025-03-03 21:45:47,660 p=10 u=root n=ansible | ok: [oracle8node2] => (item=2379/tcp)
+2025-03-03 21:45:47,719 p=10 u=root n=ansible | ok: [oracle8node1] => (item=2379/tcp)
+2025-03-03 21:45:47,720 p=10 u=root n=ansible | ok: [oracle8node3] => (item=2379/tcp)
+2025-03-03 21:45:48,036 p=10 u=root n=ansible | ok: [oracle8node2] => (item=2380/tcp)
+2025-03-03 21:45:48,108 p=10 u=root n=ansible | ok: [oracle8node3] => (item=2380/tcp)
+2025-03-03 21:45:48,123 p=10 u=root n=ansible | ok: [oracle8node1] => (item=2380/tcp)
+2025-03-03 21:45:48,423 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5000/tcp)
+2025-03-03 21:45:48,505 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5000/tcp)
+2025-03-03 21:45:48,512 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5000/tcp)
+2025-03-03 21:45:48,807 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5001/tcp)
+2025-03-03 21:45:48,888 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5001/tcp)
+2025-03-03 21:45:48,907 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5001/tcp)
+2025-03-03 21:45:49,227 p=10 u=root n=ansible | ok: [oracle8node2] => (item=7000/tcp)
+2025-03-03 21:45:49,299 p=10 u=root n=ansible | ok: [oracle8node1] => (item=7000/tcp)
+2025-03-03 21:45:49,336 p=10 u=root n=ansible | ok: [oracle8node3] => (item=7000/tcp)
+2025-03-03 21:45:49,617 p=10 u=root n=ansible | ok: [oracle8node2] => (item=112/tcp)
+2025-03-03 21:45:49,706 p=10 u=root n=ansible | ok: [oracle8node1] => (item=112/tcp)
+2025-03-03 21:45:49,730 p=10 u=root n=ansible | ok: [oracle8node3] => (item=112/tcp)
+2025-03-03 21:45:50,014 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5405/tcp)
+2025-03-03 21:45:50,102 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5405/tcp)
+2025-03-03 21:45:50,150 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5405/tcp)
+2025-03-03 21:45:50,158 p=10 u=root n=ansible | TASK [firewall : Añadir servicio HTTP a la zona publica] ***********************
+2025-03-03 21:45:50,159 p=10 u=root n=ansible | Monday 03 March 2025  21:45:50 +0000 (0:00:04.373)       0:00:21.567 ********** 
+2025-03-03 21:45:50,569 p=10 u=root n=ansible | ok: [oracle8node1] => (item=http)
+2025-03-03 21:45:50,573 p=10 u=root n=ansible | ok: [oracle8node2] => (item=http)
+2025-03-03 21:45:50,592 p=10 u=root n=ansible | ok: [oracle8node3] => (item=http)
+2025-03-03 21:45:50,684 p=10 u=root n=ansible | PLAY RECAP *********************************************************************
+2025-03-03 21:45:50,684 p=10 u=root n=ansible | oracle8node1               : ok=5    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+2025-03-03 21:45:50,684 p=10 u=root n=ansible | oracle8node2               : ok=5    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+2025-03-03 21:45:50,685 p=10 u=root n=ansible | oracle8node3               : ok=5    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+2025-03-03 21:45:50,685 p=10 u=root n=ansible | Playbook run took 0 days, 0 hours, 0 minutes, 22 seconds
+2025-03-03 21:45:50,685 p=10 u=root n=ansible | Monday 03 March 2025  21:45:50 +0000 (0:00:00.526)       0:00:22.093 ********** 
+2025-03-03 21:45:50,685 p=10 u=root n=ansible | =============================================================================== 
+2025-03-03 21:45:50,686 p=10 u=root n=ansible | firewall : Instalar Firewall si el gestor de paquetes es DNF ----------- 12.73s
+2025-03-03 21:45:50,686 p=10 u=root n=ansible | firewall : Abrir Puertos necesarios para el CLuster --------------------- 4.37s
+2025-03-03 21:45:50,686 p=10 u=root n=ansible | Gathering Facts --------------------------------------------------------- 2.56s
+2025-03-03 21:45:50,686 p=10 u=root n=ansible | firewall : Iniciar y Habilitar el servicio de firewalld ----------------- 1.74s
+2025-03-03 21:45:50,687 p=10 u=root n=ansible | firewall : Añadir servicio HTTP a la zona publica ----------------------- 0.53s
+2025-03-03 21:45:50,687 p=10 u=root n=ansible | Aplicar Role de Configuraciones Firewall -------------------------------- 0.07s
+2025-03-03 21:45:50,687 p=10 u=root n=ansible | firewall : Instalar Firewall si el gestor de paquetes es YUM ------------ 0.05s
+2025-03-03 21:48:05,176 p=10 u=root n=ansible | PLAY [Configuracion Basica del SO] *********************************************
+2025-03-03 21:48:05,206 p=10 u=root n=ansible | TASK [Gathering Facts] *********************************************************
+2025-03-03 21:48:05,208 p=10 u=root n=ansible | Monday 03 March 2025  21:48:05 +0000 (0:00:00.033)       0:00:00.033 ********** 
+2025-03-03 21:48:07,650 p=10 u=root n=ansible | ok: [oracle8node3]
+2025-03-03 21:48:07,929 p=10 u=root n=ansible | ok: [oracle8node2]
+2025-03-03 21:48:07,944 p=10 u=root n=ansible | ok: [oracle8node1]
+2025-03-03 21:48:07,981 p=10 u=root n=ansible | TASK [Aplicar Role de Configuraciones Firewall] ********************************
+2025-03-03 21:48:07,981 p=10 u=root n=ansible | Monday 03 March 2025  21:48:07 +0000 (0:00:02.774)       0:00:02.807 ********** 
+2025-03-03 21:48:08,060 p=10 u=root n=ansible | TASK [firewall : Instalar Firewall si el gestor de paquetes es DNF] ************
+2025-03-03 21:48:08,060 p=10 u=root n=ansible | Monday 03 March 2025  21:48:08 +0000 (0:00:00.078)       0:00:02.886 ********** 
+2025-03-03 21:48:21,023 p=10 u=root n=ansible | ok: [oracle8node2]
+2025-03-03 21:48:21,133 p=10 u=root n=ansible | ok: [oracle8node1]
+2025-03-03 21:48:21,301 p=10 u=root n=ansible | ok: [oracle8node3]
+2025-03-03 21:48:21,308 p=10 u=root n=ansible | TASK [firewall : Instalar Firewall si el gestor de paquetes es YUM] ************
+2025-03-03 21:48:21,309 p=10 u=root n=ansible | Monday 03 March 2025  21:48:21 +0000 (0:00:13.248)       0:00:16.135 ********** 
+2025-03-03 21:48:21,329 p=10 u=root n=ansible | skipping: [oracle8node1]
+2025-03-03 21:48:21,341 p=10 u=root n=ansible | skipping: [oracle8node2]
+2025-03-03 21:48:21,350 p=10 u=root n=ansible | skipping: [oracle8node3]
+2025-03-03 21:48:21,356 p=10 u=root n=ansible | TASK [firewall : Iniciar y Habilitar el servicio de firewalld] *****************
+2025-03-03 21:48:21,356 p=10 u=root n=ansible | Monday 03 March 2025  21:48:21 +0000 (0:00:00.047)       0:00:16.182 ********** 
+2025-03-03 21:48:22,762 p=10 u=root n=ansible | ok: [oracle8node1]
+2025-03-03 21:48:22,903 p=10 u=root n=ansible | ok: [oracle8node2]
+2025-03-03 21:48:22,999 p=10 u=root n=ansible | ok: [oracle8node3]
+2025-03-03 21:48:23,007 p=10 u=root n=ansible | TASK [firewall : Abrir Puertos necesarios para el CLuster] *********************
+2025-03-03 21:48:23,009 p=10 u=root n=ansible | Monday 03 March 2025  21:48:23 +0000 (0:00:01.651)       0:00:17.833 ********** 
+2025-03-03 21:48:23,724 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5432/tcp)
+2025-03-03 21:48:23,729 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5432/tcp)
+2025-03-03 21:48:23,805 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5432/tcp)
+2025-03-03 21:48:24,156 p=10 u=root n=ansible | ok: [oracle8node2] => (item=6432/tcp)
+2025-03-03 21:48:24,159 p=10 u=root n=ansible | ok: [oracle8node1] => (item=6432/tcp)
+2025-03-03 21:48:24,208 p=10 u=root n=ansible | ok: [oracle8node3] => (item=6432/tcp)
+2025-03-03 21:48:24,538 p=10 u=root n=ansible | ok: [oracle8node2] => (item=8008/tcp)
+2025-03-03 21:48:24,564 p=10 u=root n=ansible | ok: [oracle8node1] => (item=8008/tcp)
+2025-03-03 21:48:24,610 p=10 u=root n=ansible | ok: [oracle8node3] => (item=8008/tcp)
+2025-03-03 21:48:24,946 p=10 u=root n=ansible | ok: [oracle8node2] => (item=2379/tcp)
+2025-03-03 21:48:24,998 p=10 u=root n=ansible | ok: [oracle8node1] => (item=2379/tcp)
+2025-03-03 21:48:25,052 p=10 u=root n=ansible | ok: [oracle8node3] => (item=2379/tcp)
+2025-03-03 21:48:25,363 p=10 u=root n=ansible | ok: [oracle8node2] => (item=2380/tcp)
+2025-03-03 21:48:25,405 p=10 u=root n=ansible | ok: [oracle8node1] => (item=2380/tcp)
+2025-03-03 21:48:25,489 p=10 u=root n=ansible | ok: [oracle8node3] => (item=2380/tcp)
+2025-03-03 21:48:25,775 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5000/tcp)
+2025-03-03 21:48:25,790 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5000/tcp)
+2025-03-03 21:48:25,876 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5000/tcp)
+2025-03-03 21:48:26,156 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5001/tcp)
+2025-03-03 21:48:26,188 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5001/tcp)
+2025-03-03 21:48:26,282 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5001/tcp)
+2025-03-03 21:48:26,582 p=10 u=root n=ansible | ok: [oracle8node2] => (item=7000/tcp)
+2025-03-03 21:48:26,630 p=10 u=root n=ansible | ok: [oracle8node1] => (item=7000/tcp)
+2025-03-03 21:48:26,731 p=10 u=root n=ansible | ok: [oracle8node3] => (item=7000/tcp)
+2025-03-03 21:48:27,030 p=10 u=root n=ansible | ok: [oracle8node2] => (item=112/tcp)
+2025-03-03 21:48:27,092 p=10 u=root n=ansible | ok: [oracle8node1] => (item=112/tcp)
+2025-03-03 21:48:27,193 p=10 u=root n=ansible | ok: [oracle8node3] => (item=112/tcp)
+2025-03-03 21:48:27,476 p=10 u=root n=ansible | ok: [oracle8node2] => (item=5405/tcp)
+2025-03-03 21:48:27,539 p=10 u=root n=ansible | ok: [oracle8node1] => (item=5405/tcp)
+2025-03-03 21:48:27,633 p=10 u=root n=ansible | ok: [oracle8node3] => (item=5405/tcp)
+2025-03-03 21:48:27,642 p=10 u=root n=ansible | TASK [firewall : Añadir servicio HTTP a la zona publica] ***********************
+2025-03-03 21:48:27,642 p=10 u=root n=ansible | Monday 03 March 2025  21:48:27 +0000 (0:00:04.634)       0:00:22.468 ********** 
+2025-03-03 21:48:28,096 p=10 u=root n=ansible | ok: [oracle8node1] => (item=http)
+2025-03-03 21:48:28,114 p=10 u=root n=ansible | ok: [oracle8node2] => (item=http)
+2025-03-03 21:48:28,152 p=10 u=root n=ansible | ok: [oracle8node3] => (item=http)
+2025-03-03 21:48:28,161 p=10 u=root n=ansible | TASK [firewall : Añadir Regla para el protocolo VRRP] **************************
+2025-03-03 21:48:28,161 p=10 u=root n=ansible | Monday 03 March 2025  21:48:28 +0000 (0:00:00.519)       0:00:22.987 ********** 
+2025-03-03 21:48:28,619 p=10 u=root n=ansible | ok: [oracle8node2] => (item=rule protocol value="vrrp" accept)
+2025-03-03 21:48:28,643 p=10 u=root n=ansible | ok: [oracle8node1] => (item=rule protocol value="vrrp" accept)
+2025-03-03 21:48:28,652 p=10 u=root n=ansible | ok: [oracle8node3] => (item=rule protocol value="vrrp" accept)
+2025-03-03 21:48:28,739 p=10 u=root n=ansible | PLAY RECAP *********************************************************************
+2025-03-03 21:48:28,739 p=10 u=root n=ansible | oracle8node1               : ok=6    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+2025-03-03 21:48:28,739 p=10 u=root n=ansible | oracle8node2               : ok=6    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+2025-03-03 21:48:28,739 p=10 u=root n=ansible | oracle8node3               : ok=6    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+2025-03-03 21:48:28,740 p=10 u=root n=ansible | Playbook run took 0 days, 0 hours, 0 minutes, 23 seconds
+2025-03-03 21:48:28,740 p=10 u=root n=ansible | Monday 03 March 2025  21:48:28 +0000 (0:00:00.578)       0:00:23.566 ********** 
+2025-03-03 21:48:28,740 p=10 u=root n=ansible | =============================================================================== 
+2025-03-03 21:48:28,741 p=10 u=root n=ansible | firewall : Instalar Firewall si el gestor de paquetes es DNF ----------- 13.25s
+2025-03-03 21:48:28,741 p=10 u=root n=ansible | firewall : Abrir Puertos necesarios para el CLuster --------------------- 4.63s
+2025-03-03 21:48:28,741 p=10 u=root n=ansible | Gathering Facts --------------------------------------------------------- 2.77s
+2025-03-03 21:48:28,741 p=10 u=root n=ansible | firewall : Iniciar y Habilitar el servicio de firewalld ----------------- 1.65s
+2025-03-03 21:48:28,742 p=10 u=root n=ansible | firewall : Añadir Regla para el protocolo VRRP -------------------------- 0.58s
+2025-03-03 21:48:28,742 p=10 u=root n=ansible | firewall : Añadir servicio HTTP a la zona publica ----------------------- 0.52s
+2025-03-03 21:48:28,742 p=10 u=root n=ansible | Aplicar Role de Configuraciones Firewall -------------------------------- 0.08s
+2025-03-03 21:48:28,743 p=10 u=root n=ansible | firewall : Instalar Firewall si el gestor de paquetes es YUM ------------ 0.05s

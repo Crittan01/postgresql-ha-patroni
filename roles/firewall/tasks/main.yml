@@ -1,2 +1,63 @@
 ---
 # tasks file for roles/firewall
+- name: Instalacion y Configuracion de Firewall
+  block:
+    - name: Instalar Firewall si el gestor de paquetes es DNF
+      ansible.builtin.dnf:
+        name:
+          - firewalld
+        state: present
+      when: ansible_pkg_mgr == 'dnf'
+      register: firewalld_install
+      failed_when: firewalld_install is failed
+
+    - name: Instalar Firewall si el gestor de paquetes es YUM
+      ansible.builtin.dnf:
+        name:
+          - firewalld
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+      register: firewalld_install
+      failed_when: firewalld_install is failed
+
+    - name: Iniciar y Habilitar el servicio de firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+      register: firewalld_service
+      failed_when: firewalld_service is failed
+
+    - name: Abrir Puertos necesarios para el CLuster
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        permanent: true
+        state: enabled
+        immediate: true
+      loop: "{{ firewall_ports }}"
+      register: fw_ports
+      failed_when: fw_ports is failed
+
+    - name: Añadir servicio HTTP a la zona publica
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        permanent: true
+        state: enabled
+        immediate: true
+      loop: "{{ firewall_service }}"
+      register: fw_service
+      failed_when: fw_service is failed
+
+    - name: Añadir Regla para el protocolo VRRP
+      ansible.posix.firewalld:
+        rich_rule: "{{ item }}"
+        permanent: true
+        state: enabled
+        immediate: true
+      loop: "{{ firewall_rich_rule }}"
+      register: firewall_vrrp
+      failed_when: fw_service is failed
+  rescue:
+    - name: Notificar fallo en la configuración del firewall
+      ansible.builtin.fail:
+        msg: "Fallo en la configuración del firewall. El proceso se ha detenido."
