@@ -14,8 +14,13 @@
     #      ansible.builtin.include_role:
     #        name: firewall
     #      tags: ["firewall"]
+    #
+    #    - name: Aplicar Role de Configuraciones etcd
+    #      ansible.builtin.include_role:
+    #        name: etcd
+    #      tags: ["etcd"]
 
-    - name: Aplicar Role de Configuraciones etcd
+    - name: Aplicar Role de Instalación de PostgreSQL
       ansible.builtin.include_role:
-        name: etcd
-      tags: ["etcd"]
+        name: postgresql
+      tags: ["postgresql"]

@@ -55,6 +55,7 @@
       ansible.builtin.dnf:
         name:
           - dnf-utils
+          - epel-release
         state: present
       when: ansible_pkg_mgr == 'dnf'
       register: basic_packages
@@ -64,6 +65,7 @@
       ansible.builtin.yum:
         name:
           - yum-utils
+          - epel-release
         state: present
       when: ansible_pkg_mgr == 'yum'
       register: basic_packages

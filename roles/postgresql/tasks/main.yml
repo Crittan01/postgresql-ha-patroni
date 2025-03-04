@@ -1,2 +1,69 @@
 ---
 # tasks file for roles/postgresql
+- name: Instalar PostgreSQL
+  block:
+    - name: Deshabilitar módulo PostgreSQL nativo
+      ansible.builtin.shell: |
+        set -o pipefail
+        dnf -qy module disable postgresql
+      register: pg_disable_module
+      changed_when: pg_disable_module.rc == 0
+      failed_when: pg_disable_module.rc != 0
+
+    - name: Habilitar repositorio CodeReady Builder (Oracle) si el gestor de paquetes es DNF
+      community.general.dnf_config_manager:
+        name:
+          - "ol{{ ansible_distribution_major_version }}_codeready_builder"
+        state: enabled
+      when:
+        - ansible_pkg_mgr == 'dnf'
+        - ansible_distribution == 'OracleLinux'
+      register: codeready
+      failed_when: codeready is failed
+
+    - name: Habilitar repositorio CodeReady Builder (Oracle) si el gestor de paquetes es YUM
+      ansible.builtin.yum_repository:
+        name:
+          - "ol{{ ansible_distribution_major_version }}_codeready_builder"
+        state: present
+      when:
+        - ansible_pkg_mgr == 'yum'
+        - ansible_distribution == 'OracleLinux'
+      register: codeready
+      failed_when: codeready is failed
+
+    - name: Habilitar repositorio CodeReady Builder en (RHEL)
+      community.general.rhsm_repository:
+        name: codeready-builder-for-rhel-{{ ansible_distribution_major_version }}-x86_64-rpms
+        state: enabled
+      when: ansible_distribution == 'RedHat'
+      register: codeready
+      failed_when: codeready is failed
+
+    - name: Instalar PostgreSQL si el gestor de paquetes es DNF, version {{ postgres_version }}
+      ansible.builtin.dnf:
+        name:
+          - "postgresql{{ postgres_version }}-server"
+          - "postgresql{{ postgres_version }}-contrib"
+          - "postgresql{{ postgres_version }}-devel"
+        state: present
+      when:
+        - ansible_pkg_mgr == 'dnf'
+      register: postgres_install
+      failed_when: postgres_install is failed
+
+    - name: Instalar PostgreSQL si el gestor de paquetes es YUM, version {{ postgres_version }}
+      ansible.builtin.yum_repository:
+        name:
+          - "postgresql{{ postgres_version }}-server"
+          - "postgresql{{ postgres_version }}-contrib"
+          - "postgresql{{ postgres_version }}-devel"
+        state: present
+      when:
+        - ansible_pkg_mgr == 'yum'
+      register: postgres_install
+      failed_when: postgres_install is failed
+  rescue:
+    - name: Notificar fallo en la instalación de PostgreSQL
+      ansible.builtin.fail:
+        msg: "Fallo en la instalación de PostgreSQL. El proceso se ha detenido."
