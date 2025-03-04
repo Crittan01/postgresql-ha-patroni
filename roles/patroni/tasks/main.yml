@@ -1,2 +1,130 @@
 ---
 # tasks file for roles/patroni
+- name: Instalaciòn Patroni
+  block:
+    - name: Instalar Patroni y Dependencias si el gestor de paquetes es DNF
+      ansible.builtin.dnf:
+        name:
+          - patroni
+          - patroni-etcd
+          - watchdog
+        state: present
+      when:
+        - ansible_pkg_mgr == 'dnf'
+      register: patroni_install
+      failed_when: patroni_install is failed
+
+    - name: Instalar Patroni y Dependencias si el gestor de paquetes es YUM
+      ansible.builtin.yum_repository:
+        name:
+          - patroni
+          - patroni-etcd
+          - watchdog
+        state: present
+      when:
+        - ansible_pkg_mgr == 'yum'
+      register: patroni_install
+      failed_when: patroni_install is failed
+  rescue:
+    - name: Notificar fallo en la instalación de Patroni
+      ansible.builtin.fail:
+        msg: "Fallo en la instalación de Patroni. El proceso se ha detenido."
+
+- name: Configuración de Patroni
+  block:
+    - name: Crear directorio de configuracion para Patroni
+      ansible.builtin.file:
+        path: /etc/patroni
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      register: patroni_dir
+      failed_when: patroni_dir is failed
+
+    - name: Configurar Patroni
+      ansible.builtin.template:
+        src: patroni.yml.j2
+        dest: /etc/patroni/patroni.yml
+        owner: root
+        group: root
+        mode: "0644"
+      register: patroni_config
+      failed_when: patroni_config is failed
+  rescue:
+    - name: Notificar fallo en la configuración de Patroni
+      ansible.builtin.fail:
+        msg: "Fallo en la configuración de Patroni. El proceso se ha detenido."
+
+- name: Configuraci de Watchdog
+  block:
+    - name: Configurar watchdog
+      ansible.builtin.lineinfile:
+        path: /etc/watchdog.conf
+        regexp: "^#?watchdog-device"
+        line: "watchdog-device = /dev/watchdog"
+        state: present
+      register: watchdog_config
+      failed_when: watchdog_config is failed
+
+    - name: Crear nodo de dispositivo watchdog
+      ansible.builtin.shell: |
+        set -o pipefail
+        mknod /dev/watchdog c 10 130
+      args:
+        creates: /dev/watchdog
+      register: watchdog_node
+      failed_when: watchdog_node is failed and not 'File exists' in watchdog_node.stderr
+
+    - name: Cargar módulo softdog
+      ansible.builtin.shell: |
+        set -o pipefail
+        modprobe softdog
+      register: softdog_module
+      failed_when: softdog_module.rc != 0
+      changed_when: softdog_module.rc == 0
+
+    - name: Ajustar permisos del dispositivo watchdog
+      ansible.builtin.file:
+        path: /dev/watchdog
+        owner: "{{ postgres_user }}"
+        group: "{{ postgres_user }}"
+      register: watchdog_perms
+      failed_when: watchdog_perms is failed
+  rescue:
+    - name: Notificar fallo en la configuración de watchdog
+      ansible.builtin.fail:
+        msg: "Fallo en la configuración de watchdog. El proceso se ha detenido."
+
+- name: Inicio de Servicios Patroni
+  block:
+    - name: Iniciar Patroni en el Nodo Master
+      ansible.builtin.service:
+        name: patroni
+        state: started
+        enabled: true
+      register: patroni_master
+      failed_when: patroni_master is failed
+      when:
+        - patroni_role == 'master'
+        - inventory_hostname == groups['postgresql_servers'][0]
+
+    - name: Esperar a que el nodo master este OK
+      ansible.builtin.pause:
+        seconds: 30
+      when:
+        - patroni_role == 'master'
+        - inventory_hostname == groups['postgresql_servers'][0]
+
+    - name: Iniciar Patroni en los demas nodos
+      ansible.builtin.service:
+        name: patroni
+        state: started
+        enabled: true
+      register: patroni_others
+      failed_when: patroni_others is failed
+      when: not (patroni_role == 'master' and inventory_hostname == groups['postgresql_servers'][0])
+  rescue:
+    - name: Notificar fallo en el inicio de Patroni
+      ansible.builtin.fail:
+        msg: "Fallo al iniciar Patroni. El proceso se ha detenido."

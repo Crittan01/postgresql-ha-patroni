@@ -1,4 +1,4 @@
 ---
 # Credenciales
 postgres_password: postgres
-replication_passowrd: replicator
+replication_password: replicator

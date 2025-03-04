@@ -63,6 +63,16 @@
         - ansible_pkg_mgr == 'yum'
       register: postgres_install
       failed_when: postgres_install is failed
+
+    - name: Crear directorios para datos de PostgreSQL
+      ansible.builtin.file:
+        path: "{{ postgres_data_dir | dirname }}"
+        state: directory
+        owner: "{{ postgres_user }}"
+        group: "{{ postgres_user }}"
+        mode: "0744" # --> Validar si seria 700
+      register: postgres_dir
+      failed_when: postgres_dir is failed
   rescue:
     - name: Notificar fallo en la instalación de PostgreSQL
       ansible.builtin.fail:

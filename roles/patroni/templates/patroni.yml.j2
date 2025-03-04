@@ -1,0 +1,63 @@
+scope: postgres
+namespace: /db/
+name: {{ inventory_hostname }}
+
+restapi:
+    listen: {{ ansible_host }}:8008
+    connect_address: {{ ansible_host }}:8008
+
+etcd3:
+    hosts: {% for host in groups['etcd_servers'] %}{{ hostvars[host]['ansible_host'] }}:2379{% if not loop.last %},{% endif %}{% endfor %}
+
+bootstrap:
+    dcs:
+        ttl: 30
+        loop_wait: 10
+        retry_timeout: 10
+        maximum_lag_on_failover: 1048576
+        failover:
+            failover_timeout: 30
+            leader_check_interval: 3
+        postgresql:
+            use_pg_rewind: true
+        initialize: true
+        master_start_timeout: 0
+    method: initdb
+    initdb:
+      - encoding: UTF8
+      - data-checksums
+    pg_hba:
+    {% for host in groups['postgresql_servers'] %}
+    - host replication replicator {{ hostvars[host]['ansible_host'] }}/0 md5
+    {% endfor %}
+    - host replication all  0.0.0.0/0 md5
+    - host all all 0.0.0.0/0 md5
+
+postgresql:
+    listen: {{ ansible_host }}:5432
+    connect_address: {{ ansible_host }}:5432
+    data_dir: {{ postgres_data_dir }}
+    bin_dir: {{ postgres_bin_dir }}
+    recovery_conf:
+        standby_mode: "off"
+    authentication:
+        replication:
+            username: replicator
+            password: {{ replication_password }}
+        superuser:
+            username: {{ postgres_user }}
+            password: {{ postgres_password }}
+    parameters:
+        unix_socket_directories: '/run/postgresql/'
+
+watchdog:
+  mode: off
+  device: /dev/watchdog
+  safety_margin: 5
+
+tags:
+    nofailover: false
+    noloadbalance: false
+    clonefrom: false
+    nosync: false
+    priority: {{ priority }}

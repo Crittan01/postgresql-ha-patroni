@@ -106,7 +106,7 @@
           {% for host in groups['postgresql_servers'] %}
           export {{ host }}={{ hostvars[host]['ansible_host'] }}
           {% endfor %}
-          export ENDPOINTS={% for host in groups['etcd_servers'] %}${{ host }}:2379{% if not loop.last %},{% endif %}{% endfor %}"
+          export ENDPOINTS={% for host in groups['etcd_servers'] %}${{ host }}:2379{% if not loop.last %},{% endif %}{% endfor %}
       loop:
         - "{{ ansible_usr }}"
         - "{{ postgres_user }}"
