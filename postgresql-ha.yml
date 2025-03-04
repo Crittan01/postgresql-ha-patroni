@@ -5,40 +5,40 @@
   become: true
 
   tasks:
-    #    - name: ROLE - Configuraciones Basicas
-    #      ansible.builtin.include_role:
-    #        name: common
-    #      tags: ["common"]
-    #
-    #    - name: ROLE - Configuraciones Firewall
-    #      ansible.builtin.include_role:
-    #        name: firewall
-    #      tags: ["firewall"]
-    #
-    #    - name: ROLE - Configuraciones etcd
-    #      ansible.builtin.include_role:
-    #        name: etcd
-    #      tags: ["etcd"]
-    #
-    #    - name: ROLE - Instalación de PostgreSQL
-    #      ansible.builtin.include_role:
-    #        name: postgresql
-    #      tags: ["postgresql"]
-    #
-    #    - name: ROLE - Instalación de Patroni
-    #      ansible.builtin.include_role:
-    #        name: patroni
-    #      tags: ["patroni"]
-    #
-    #    - name: ROLE - Instalación de HAproxy
-    #      ansible.builtin.include_role:
-    #        name: haproxy
-    #      tags: ["haproxy"]
-    #
-    #    - name: ROLE - Instalación de Keepalived
-    #      ansible.builtin.include_role:
-    #        name: keepalived
-    #      tags: ["keepalived"]
+    - name: ROLE - Configuraciones Basicas
+      ansible.builtin.include_role:
+        name: common
+      tags: ["common"]
+
+    - name: ROLE - Configuraciones Firewall
+      ansible.builtin.include_role:
+        name: firewall
+      tags: ["firewall"]
+
+    - name: ROLE - Configuraciones etcd
+      ansible.builtin.include_role:
+        name: etcd
+      tags: ["etcd"]
+
+    - name: ROLE - Instalación de PostgreSQL
+      ansible.builtin.include_role:
+        name: postgresql
+      tags: ["postgresql"]
+
+    - name: ROLE - Instalación de Patroni
+      ansible.builtin.include_role:
+        name: patroni
+      tags: ["patroni"]
+
+    - name: ROLE - Instalación de HAproxy
+      ansible.builtin.include_role:
+        name: haproxy
+      tags: ["haproxy"]
+
+    - name: ROLE - Instalación de Keepalived
+      ansible.builtin.include_role:
+        name: keepalived
+      tags: ["keepalived"]
 
     - name: ROLE - Validacion nodos Patroni
       ansible.builtin.include_role:
