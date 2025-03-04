@@ -1,2 +1,114 @@
 ---
 # tasks file for roles/keepalived
+- name: Instalación de Keepalived
+  block:
+    - name: Instalar Keepalived si el gestor de paquetes es DNF
+      ansible.builtin.dnf:
+        name:
+          - keepalived
+        state: present
+      when: ansible_pkg_mgr == 'dnf'
+      register: keepalived_install
+      failed_when: keepalived_install is failed
+
+    - name: Instalar Keepalived si el gestor de paquetes es YUM
+      ansible.builtin.yum:
+        name:
+          - keepalived
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+      register: keepalived_install
+      failed_when: keepalived_install is failed
+  rescue:
+    - name: Notificar fallo en la instalación de Keepalived
+      ansible.builtin.fail:
+        msg: "Fallo en la instalación de Keepalived. El proceso se ha detenido."
+
+- name: Configuración de sysctl
+  block:
+    - name: Configurar sysctl para permitir binding a IPs no locales
+      ansible.builtin.lineinfile:
+        path: /etc/sysctl.conf
+        line: "{{ item }}"
+        state: present
+      with_items:
+        - "net.ipv4.ip_nonlocal_bind = 1"
+        - "net.ipv4.ip_forward = 1"
+      register: sysctl_config
+      failed_when: sysctl_config is failed
+      notify: Aplicar configuración sysctl
+
+    - name: Aplicar configuración sysctl inmediatamente
+      ansible.builtin.shell: |
+        set -o pipefail
+        sysctl --system && sysctl -p
+      register: sysctl_apply
+      changed_when: sysctl_apply.rc == 0
+      failed_when: sysctl_apply.rc != 0
+  rescue:
+    - name: Notificar fallo en la configuración de sysctl
+      ansible.builtin.fail:
+        msg: "Fallo en la configuración de sysctl. El proceso se ha detenido."
+
+- name: Configuración de Keepalived
+  block:
+    - name: Obtener Informacion de '/etc/keepalived/keepalived.conf'
+      ansible.builtin.stat:
+        path: /etc/keepalived/keepalived.conf
+      register: stat_keepalived_file
+
+    - name: Crear copia de seguridad del archivo de configuración original
+      ansible.builtin.copy:
+        src: /etc/keepalived/keepalived.conf
+        dest: /etc/keepalived/keepalived.conf.orig
+        remote_src: true
+        force: true
+        owner: "{{ stat_keepalived_file.stat.pw_name }}"
+        group: "{{ stat_keepalived_file.stat.gr_name }}"
+        mode: "{{ stat_keepalived_file.stat.mode }}"
+      register: keepalived_backup
+      failed_when: keepalived_backup is failed
+
+    - name: Configurar Keepalived
+      ansible.builtin.template:
+        src: keepalived.conf.j2
+        dest: /etc/keepalived/keepalived.conf
+        owner: "{{ stat_keepalived_file.stat.pw_name }}"
+        group: "{{ stat_keepalived_file.stat.gr_name }}"
+        mode: "{{ stat_keepalived_file.stat.mode }}"
+      register: keepalived_config
+      failed_when: keepalived_config is failed
+
+    - name: Iniciar y habilitar el servicio Keepalived
+      ansible.builtin.service:
+        name: keepalived
+        state: started
+        enabled: true
+      register: keepalived_service
+      failed_when: keepalived_service is failed
+  rescue:
+    - name: Notificar fallo en la configuración de Keepalived
+      ansible.builtin.fail:
+        msg: "Fallo en la configuración de Keepalived. El proceso se ha detenido."
+
+- name: Verificar IP virtual
+  block:
+    - name: Verificar dirección IP virtual (solo en nodo master)
+      ansible.builtin.shell: |
+        set -o pipefail
+        ip addr show {{ network_interface }} | grep {{ virtual_ip }}
+      register: vip_check
+      changed_when: false
+      failed_when: false
+      when: patroni_role == 'master'
+
+    - name: Mostrar estado de la IP virtual
+      ansible.builtin.debug:
+        msg:
+          - "La IP virtual {{ virtual_ip }}"
+          - "Está {% if vip_check.rc == 0 %}SI configurada{% else %}NO configurada{% endif %} en el nodo {{ inventory_hostname | upper }}"
+      when: patroni_role == 'master'
+  rescue:
+    - name: Notificar fallo en la verificación de IP virtual
+      ansible.builtin.fail:
+        msg: "Fallo en la verificación de IP virtual. El proceso se ha detenido."

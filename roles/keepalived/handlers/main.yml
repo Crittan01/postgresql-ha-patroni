@@ -1,2 +1,11 @@
 ---
 # handlers file for roles/keepalived
+- name: Aplicar configuración sysctl
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+  loop:
+    - { key: "net.ipv4.ip_nonlocal_bind", value: "1" }
+    - { key: "net.ipv4.ip_forward", value: "1" }
