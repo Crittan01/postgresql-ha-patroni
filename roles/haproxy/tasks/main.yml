@@ -1,2 +1,60 @@
 ---
 # tasks file for roles/haproxy
+- name: Instalación y configuración de HAProxy
+  block:
+    - name: Instalar HAProxy si el gestor de paquetes es DNF
+      ansible.builtin.dnf:
+        name:
+          - haproxy
+        state: present
+      when: ansible_pkg_mgr == 'dnf'
+      register: haproxy_install
+      failed_when: haproxy_install is failed
+
+    - name: Instalar HAProxy si el gestor de paquetes es YUM
+      ansible.builtin.yum:
+        name:
+          - haproxy
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+      register: haproxy_install
+      failed_when: haproxy_install is failed
+
+    - name: Obtener Informacion de '/etc/haproxy/haproxy.cfg'
+      ansible.builtin.stat:
+        path: /etc/haproxy/haproxy.cfg
+      register: stat_haproxy_file
+
+    - name: Crear copia de seguridad del archivo de configuración original
+      ansible.builtin.copy:
+        src: /etc/haproxy/haproxy.cfg
+        dest: /etc/haproxy/haproxy.cfg.orig
+        remote_src: true
+        force: true
+        owner: "{{ stat_haproxy_file.stat.pw_name }}"
+        group: "{{ stat_haproxy_file.stat.gr_name }}"
+        mode: "{{ stat_haproxy_file.stat.mode }}"
+      register: haproxy_backup
+      failed_when: haproxy_backup is failed
+
+    - name: Configurar HAProxy
+      ansible.builtin.template:
+        src: haproxy.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+        owner: "{{ stat_haproxy_file.stat.pw_name }}"
+        group: "{{ stat_haproxy_file.stat.gr_name }}"
+        mode: "{{ stat_haproxy_file.stat.mode }}"
+      register: haproxy_config
+      failed_when: haproxy_config is failed
+
+    - name: Iniciar y habilitar el servicio HAProxy
+      ansible.builtin.service:
+        name: haproxy
+        state: started
+        enabled: true
+      register: haproxy_service
+      failed_when: haproxy_service is failed
+  rescue:
+    - name: Notificar fallo en la configuración de HAProxy
+      ansible.builtin.fail:
+        msg: "Fallo en la configuración de HAProxy. El proceso se ha detenido."

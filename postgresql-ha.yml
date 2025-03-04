@@ -5,27 +5,32 @@
   become: true
 
   tasks:
-    - name: Aplicar Role de Configuraciones Basicas
-      ansible.builtin.include_role:
-        name: common
-      tags: ["common"]
+    #    - name: Aplicar Role de Configuraciones Basicas
+    #      ansible.builtin.include_role:
+    #        name: common
+    #      tags: ["common"]
+    #
+    #    - name: Aplicar Role de Configuraciones Firewall
+    #      ansible.builtin.include_role:
+    #        name: firewall
+    #      tags: ["firewall"]
+    #
+    #    - name: Aplicar Role de Configuraciones etcd
+    #      ansible.builtin.include_role:
+    #        name: etcd
+    #      tags: ["etcd"]
+    #
+    #    - name: Aplicar Role de Instalación de PostgreSQL
+    #      ansible.builtin.include_role:
+    #        name: postgresql
+    #      tags: ["postgresql"]
+    #
+    #    - name: Aplicar Role de Instalación de Patroni
+    #      ansible.builtin.include_role:
+    #        name: patroni
+    #      tags: ["patroni"]
 
-    - name: Aplicar Role de Configuraciones Firewall
+    - name: Aplicar Role de Instalación de HAproxy
       ansible.builtin.include_role:
-        name: firewall
-      tags: ["firewall"]
-
-    - name: Aplicar Role de Configuraciones etcd
-      ansible.builtin.include_role:
-        name: etcd
-      tags: ["etcd"]
-
-    - name: Aplicar Role de Instalación de PostgreSQL
-      ansible.builtin.include_role:
-        name: postgresql
-      tags: ["postgresql"]
-
-    - name: Aplicar Role de Instalación de Patroni
-      ansible.builtin.include_role:
-        name: patroni
-      tags: ["patroni"]
+        name: haproxy
+      tags: ["haproxy"]
