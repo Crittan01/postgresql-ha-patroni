@@ -1,8 +1,2 @@
 ---
 # handlers file for roles/common
-# - name: Reiniciar maquina si cambia SELinux
-#   ansible.builtin.reboot:
-#     pre_reboot_delay: 10
-#     reboot_timeout: 600
-#     post_reboot_delay: 10
-#     msg: "Reinciio controlado"

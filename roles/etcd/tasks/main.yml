@@ -2,11 +2,34 @@
 # tasks file for roles/etcd
 - name: Habiliar y configurar etcd
   block:
+    - name: Descargar la clave GPG para RHEL
+      ansible.builtin.get_url:
+        url: "https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL"
+        dest: "/etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-RHEL"
+        mode: "0644"
+
+    - name: Importar la clave GPG para RHEL
+      ansible.builtin.rpm_key:
+        key: "/etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-RHEL"
+        state: present
+
+    - name: Descargar la clave GPG para PostgreSQL
+      ansible.builtin.get_url:
+        url: "https://download.postgresql.org/pub/repos/yum/keys/RPM-GPG-KEY-PGDG"
+        dest: "/etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG"
+        mode: "0644"
+
+    - name: Importar la clave GPG para PostgreSQL
+      ansible.builtin.rpm_key:
+        key: "/etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG"
+        state: present
+
     - name: Instalar Repo PostgreSQL si el gestor de paquetes es DNF
       ansible.builtin.dnf:
         name:
           - "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
         state: present
+        update_cache: true
       when: ansible_pkg_mgr == 'dnf'
       register: basic_packages
       failed_when: basic_packages is failed
@@ -16,27 +39,46 @@
         name:
           - "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
         state: present
+        update_cache: true
       when: ansible_pkg_mgr == 'yum'
       register: basic_packages
       failed_when: basic_packages is failed
 
     - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es DNF
-      community.general.dnf_config_manager:
-        name:
-          - pgdg-rhel8-extras
-        state: enabled
-      when: ansible_pkg_mgr == 'dnf'
+      ansible.builtin.shell: |
+        set -o pipefail
+        dnf config-manager --set-enabled pgdg-rhel8-extras
       register: pgdg_extras
-      failed_when: pgdg_extras is failed
+      changed_when: pgdg_extras.rc == 0
+      failed_when: pgdg_extras.rc != 0
+      when: ansible_pkg_mgr == 'dnf'
 
     - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es YUM
-      ansible.builtin.yum_repository:
-        name:
-          - pgdg-rhel8-extras
-        state: present
-      when: ansible_pkg_mgr == 'yum'
+      ansible.builtin.shell: |
+        set -o pipefail
+        yum config-manager --set-enabled pgdg-rhel8-extras
       register: pgdg_extras
-      failed_when: pgdg_extras is failed
+      changed_when: pgdg_extras.rc == 0
+      failed_when: pgdg_extras.rc != 0
+      when: ansible_pkg_mgr == 'yum'
+
+    #    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es DNF
+    #      community.general.dnf_config_manager:
+    #        name:
+    #          - pgdg-rhel8-extras
+    #        state: enabled
+    #      when: ansible_pkg_mgr == 'dnf'
+    #      register: pgdg_extras
+    #      failed_when: pgdg_extras is failed
+    #
+    #    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es YUM
+    #      ansible.builtin.yum_repository:
+    #        name:
+    #          - pgdg-rhel8-extras
+    #        state: present
+    #      when: ansible_pkg_mgr == 'yum'
+    #      register: pgdg_extras
+    #      failed_when: pgdg_extras is failed
 
     - name: Instalar 'etcd' si el gestor de paquetes es DNF
       ansible.builtin.dnf:

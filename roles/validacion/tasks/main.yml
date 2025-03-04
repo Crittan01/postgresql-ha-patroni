@@ -1,0 +1,18 @@
+---
+# tasks file for roles/validacion
+- name: Validacion Nodos de Patroni
+  block:
+    - name: Ejecutar patronictl
+      ansible.builtin.shell: |
+        set -o pipefail
+        patronictl -c /etc/patroni/patroni.yml list
+      changed_when: false
+      register: patronictl_out
+
+    - name: Debug - Ejecutar Ejecutar patronictl
+      ansible.builtin.debug:
+        var: patronictl_out.stdout_lines
+  rescue:
+    - name: Notificar fallo en la configuración de patronictl
+      ansible.builtin.fail:
+        msg: "Fallo en la validacion de patronictl. El proceso se ha detenido."

@@ -15,9 +15,9 @@
         connect_timeout: 5
         reboot_timeout: 600
         post_reboot_delay: 5
+      when: selinux_config.changed # noqa: no-handler
       register: selinux_reboot
       failed_when: selinux_reboot is failed
-      when: selinux_config.reboot_required
 
     - name: Configurar Zona Horaria
       community.general.timezone:
@@ -56,6 +56,7 @@
         name:
           - dnf-utils
           - epel-release
+          - python3-pip
         state: present
       when: ansible_pkg_mgr == 'dnf'
       register: basic_packages
@@ -66,6 +67,7 @@
         name:
           - yum-utils
           - epel-release
+          - python3-pip
         state: present
       when: ansible_pkg_mgr == 'yum'
       register: basic_packages
@@ -74,6 +76,33 @@
     - name: NOtificar fallo en la configuracion SELinux
       ansible.builtin.fail:
         msg: "Fallo la actualzacion del Sistema del sistema."
+
+- name: Crear usuario postgres y configurar permisos
+  block:
+    - name: Crear usuario postgres
+      ansible.builtin.user:
+        name: "{{ postgres_user }}"
+        shell: /bin/bash
+        createhome: true
+        state: present
+        password: "{{ postgres_password }}"
+      register: postgres_user_result
+      failed_when: postgres_user_result is failed
+
+    - name: Configurar privilegios sudo para el usuario postgres
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/postgres
+        line: "postgres ALL=(ALL) NOPASSWD:ALL"
+        state: present
+        mode: "0440"
+        create: true
+        validate: "visudo -cf %s"
+      register: sudo_config
+      failed_when: sudo_config is failed
+  rescue:
+    - name: Notificar fallo en la configuración del usuario postgres
+      ansible.builtin.fail:
+        msg: "Fallo en la configuración del usuario postgres."
 
 - name: Configuracion /etc/hosts
   block:

@@ -1,3 +1,4 @@
+---
 scope: postgres
 namespace: /db/
 name: {{ inventory_hostname }}
@@ -15,23 +16,14 @@ bootstrap:
         loop_wait: 10
         retry_timeout: 10
         maximum_lag_on_failover: 1048576
-        failover:
-            failover_timeout: 30
-            leader_check_interval: 3
         postgresql:
             use_pg_rewind: true
-        initialize: true
-        master_start_timeout: 0
-    method: initdb
-    initdb:
-      - encoding: UTF8
-      - data-checksums
     pg_hba:
-    {% for host in groups['postgresql_servers'] %}
-    - host replication replicator {{ hostvars[host]['ansible_host'] }}/0 md5
-    {% endfor %}
-    - host replication all  0.0.0.0/0 md5
-    - host all all 0.0.0.0/0 md5
+{% for host in groups['postgresql_servers'] %}
+        - host replication replicator {{ hostvars[host]['ansible_host'] }}/0 md5
+{% endfor %}
+        - host replication all 0.0.0.0/0 md5
+        - host all all 0.0.0.0/0 md5
 
 postgresql:
     listen: {{ ansible_host }}:5432
@@ -51,9 +43,9 @@ postgresql:
         unix_socket_directories: '/run/postgresql/'
 
 watchdog:
-  mode: off
-  device: /dev/watchdog
-  safety_margin: 5
+    mode: "off"
+    device: /dev/watchdog
+    safety_margin: 5
 
 tags:
     nofailover: false
