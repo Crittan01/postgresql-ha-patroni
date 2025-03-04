@@ -1,0 +1,27 @@
+# Configuración para un clúster etcd con 3 nodos
+
+# Nombre del miembro etcd
+ETCD_NAME={{ inventory_hostname }}
+
+# Directorio de datos
+ETCD_DATA_DIR="/var/lib/etcd/{{ inventory_hostname }}"
+
+# URLs de escucha
+ETCD_LISTEN_PEER_URLS="http://{{ ansible_host }}:2380,http://127.0.0.1:2380"
+ETCD_LISTEN_CLIENT_URLS="http://{{ ansible_host }}:2379,http://127.0.0.1:2379"
+
+# URLs de anuncio
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://{{ ansible_host }}:2380"
+ETCD_ADVERTISE_CLIENT_URLS="http://{{ ansible_host }}:2379"
+
+# Configuración del clúster inicial
+ETCD_INITIAL_CLUSTER="{% for host in groups['etcd_servers'] %}{{ host }}=http://{{ hostvars[host]['ansible_host'] }}:2380{% if not loop.last %},{% endif %}{% endfor %}"
+
+# Estado inicial del clúster
+ETCD_INITIAL_CLUSTER_STATE="new"
+
+# Token del clúster inicial
+ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster"
+
+# Habilitar API v2
+ETCD_ENABLE_V2="true"

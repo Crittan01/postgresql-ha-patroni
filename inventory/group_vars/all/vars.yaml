@@ -11,8 +11,10 @@ timezone: America/Bogota
 network_interface: enp1s0
 virtual_ip: 192.192.20.81
 
-# COnfiguracion de POstgreSQL
+# Configuracion de POstgreSQL
 postgres_version: 17
 postgres_user: postgres
 postgres_data_dir: /u01/pgsql/17
 postgres_bin_dir: /usr/pgsql-17/bin
+
+ansible_usr: ansible

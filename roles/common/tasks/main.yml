@@ -8,7 +8,16 @@
         policy: "{{ selinux_policy }}"
       register: selinux_config
       failed_when: selinux_config is failed
-      notify: Reiniciar maquina si cambia SELinux
+
+    - name: Reiniciar el servidor si SELinux lo requiere
+      ansible.builtin.reboot:
+        msg: "Reinicio tras cambio de SELinux"
+        connect_timeout: 5
+        reboot_timeout: 600
+        post_reboot_delay: 5
+      register: selinux_reboot
+      failed_when: selinux_reboot is failed
+      when: selinux_config.reboot_required
 
     - name: Configurar Zona Horaria
       community.general.timezone:
@@ -22,31 +31,12 @@
 
 - name: Actualizar Dependencias y Paquetes del SO
   block:
-    - name: Instalar dnf-utils y Paquetes viables si el gestor de paquetes es DNF
-      ansible.builtin.dnf:
-        name:
-          - dnf-utils
-        state: present
-        update_cache: true
-      when: ansible_pkg_mgr == 'dnf'
-      register: basic_packages
-      failed_when: basic_packages is failed
-
-    - name: Instalar yum-utils y Paquetes viables si el gestor de paquetes es YUM
-      ansible.builtin.yum:
-        name:
-          - yum-utils
-        state: present
-        update_cache: true
-      when: ansible_pkg_mgr == 'yum'
-      register: basic_packages
-      failed_when: basic_packages is failed
-
     - name: Actualizar todos los paquetes del Servidor si el gestor de paquetes es DNF
       ansible.builtin.dnf:
         name:
           - "*"
         state: latest
+        update_cache: true
       when: ansible_pkg_mgr == 'dnf'
       register: package_update
       failed_when: package_update is failed
@@ -56,9 +46,28 @@
         name:
           - "*"
         state: latest
+        update_cache: true
       when: ansible_pkg_mgr == 'yum'
       register: package_update
       failed_when: package_update is failed
+
+    - name: Instalar Paquetes viables si el gestor de paquetes es DNF
+      ansible.builtin.dnf:
+        name:
+          - dnf-utils
+        state: present
+      when: ansible_pkg_mgr == 'dnf'
+      register: basic_packages
+      failed_when: basic_packages is failed
+
+    - name: Instalar yum-utils y Paquetes viables si el gestor de paquetes es YUM
+      ansible.builtin.yum:
+        name:
+          - yum-utils
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+      register: basic_packages
+      failed_when: basic_packages is failed
   rescue:
     - name: NOtificar fallo en la configuracion SELinux
       ansible.builtin.fail:

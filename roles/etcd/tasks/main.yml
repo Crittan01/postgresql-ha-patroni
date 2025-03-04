@@ -1,2 +1,142 @@
 ---
 # tasks file for roles/etcd
+- name: Habiliar y configurar etcd
+  block:
+    - name: Instalar Repo PostgreSQL si el gestor de paquetes es DNF
+      ansible.builtin.dnf:
+        name:
+          - "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+        state: present
+      when: ansible_pkg_mgr == 'dnf'
+      register: basic_packages
+      failed_when: basic_packages is failed
+
+    - name: Instalar Repo PostgreSQL si el gestor de paquetes es YUM
+      ansible.builtin.yum:
+        name:
+          - "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+      register: basic_packages
+      failed_when: basic_packages is failed
+
+    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es DNF
+      community.general.dnf_config_manager:
+        name:
+          - pgdg-rhel8-extras
+        state: enabled
+      when: ansible_pkg_mgr == 'dnf'
+      register: pgdg_extras
+      failed_when: pgdg_extras is failed
+
+    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es YUM
+      ansible.builtin.yum_repository:
+        name:
+          - pgdg-rhel8-extras
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+      register: pgdg_extras
+      failed_when: pgdg_extras is failed
+
+    - name: Instalar 'etcd' si el gestor de paquetes es DNF
+      ansible.builtin.dnf:
+        name:
+          - etcd
+        state: present
+      when: ansible_pkg_mgr == 'dnf'
+      register: pgdg_extras
+      failed_when: pgdg_extras is failed
+
+    - name: Instalar 'etcd' si el gestor de paquetes es YUM
+      ansible.builtin.yum:
+        name:
+          - etcd
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+      register: pgdg_extras
+      failed_when: pgdg_extras is failed
+
+    - name: Obtener Informacion de '/etc/etcd/etcd.conf'
+      ansible.builtin.stat:
+        path: /etc/etcd/etcd.conf
+      register: stat_etcd_file
+
+    - name: Crear copia de seguridad del archivo de configuracion inicial
+      ansible.builtin.copy:
+        src: /etc/etcd/etcd.conf
+        dest: /etc/etcd/etcd.conf.orig
+        remote_src: true
+        force: true
+        owner: "{{ stat_etcd_file.stat.pw_name }}"
+        group: "{{ stat_etcd_file.stat.gr_name }}"
+        mode: "{{ stat_etcd_file.stat.mode }}"
+      register: etcd_backup
+      failed_when: etcd_backup is failed
+
+    - name: Configurar 'etcd'
+      ansible.builtin.template:
+        src: etcd.conf.j2
+        dest: /etc/etcd/etcd.conf
+        owner: "{{ stat_etcd_file.stat.pw_name }}"
+        group: "{{ stat_etcd_file.stat.gr_name }}"
+        mode: "{{ stat_etcd_file.stat.mode }}"
+      register: etcd_backup
+      failed_when: etcd_backup is failed
+
+    - name: Iniciar y Habiliar servicio de etcd
+      ansible.builtin.service:
+        name: etcd
+        state: started
+        enabled: true
+      register: etcd_service
+      failed_when: etcd_service is failed
+
+    - name: Esperar a que 'etcd' incie
+      ansible.builtin.wait_for:
+        port: 2379
+        state: started
+        timeout: 60
+      register: etcd_wait
+      failed_when: etcd_wait is failed
+
+    - name: Configurar variables de entorno de etcd
+      ansible.builtin.blockinfile:
+        path: "/home/{{ item }}/.bash_profile"
+        block: |
+          {% for host in groups['postgresql_servers'] %}
+          export {{ host }}={{ hostvars[host]['ansible_host'] }}
+          {% endfor %}
+          export ENDPOINTS={% for host in groups['etcd_servers'] %}${{ host }}:2379{% if not loop.last %},{% endif %}{% endfor %}"
+      loop:
+        - "{{ ansible_usr }}"
+        - "{{ postgres_user }}"
+      register: etcd_env
+      failed_when: etcd_env is failed
+
+    - name: Ejecutar etcdctl con variables de entorno configuradas
+      ansible.builtin.shell: |
+        set -o pipefail
+        etcdctl endpoint status --write-out=table --endpoints="$ENDPOINTS"
+      environment:
+        ENDPOINTS: "{{ my_endpoints }}"
+      vars:
+        my_endpoints: "{% for host in groups['etcd_servers'] %}{{ host }}:2379{% if not loop.last %},{% endif %}{% endfor %}"
+      changed_when: false
+      register: etcdctl_out
+
+    #    - name: Ejecutar etcdctl con variables de entorno configuradas
+    #      ansible.builtin.shell: |
+    #        . /home/{{ ansible_usr }}/.bash_profile
+    #        etcdctl endpoint status --write-out=table --endpoints="$ENDPOINTS"
+    #      args:
+    #        executable: /bin/bash
+    #      changed_when: false
+    #      register: etcdctl_out
+
+    - name: Debug - Ejecutar etcdctl
+      ansible.builtin.debug:
+        var: etcdctl_out.stdout_lines
+  rescue:
+    - name: Notificar fallo en la configuración de etcd
+      ansible.builtin.fail:
+        msg: "Fallo en la configuración de etcd. El proceso se ha detenido."
