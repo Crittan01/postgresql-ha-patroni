@@ -15,7 +15,7 @@ ETCD_INITIAL_ADVERTISE_PEER_URLS="http://{{ ansible_host }}:2380"
 ETCD_ADVERTISE_CLIENT_URLS="http://{{ ansible_host }}:2379"
 
 # Configuración del clúster inicial
-ETCD_INITIAL_CLUSTER="{% for host in groups['etcd_servers'] %}{{ host }}=http://{{ hostvars[host]['ansible_host'] }}:2380{% if not loop.last %},{% endif %}{% endfor %}"
+ETCD_INITIAL_CLUSTER="{% for host in groups['postgresql_servers'] %}{{ host }}=http://{{ hostvars[host]['ansible_host'] }}:2380{% if not loop.last %},{% endif %}{% endfor %}"
 
 # Estado inicial del clúster
 ETCD_INITIAL_CLUSTER_STATE="new"

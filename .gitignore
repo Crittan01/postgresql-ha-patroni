@@ -1,3 +1,4 @@
 postgresql-ha*
 ansible-navigator.log
 .ansible-lint
+logs/*
