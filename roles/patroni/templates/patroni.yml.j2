@@ -41,12 +41,12 @@ postgresql:
             password: {{ postgres_password }}
     parameters:
         unix_socket_directories: '/run/postgresql/'
-
+{#
 watchdog:
     mode: "off"
     device: /dev/watchdog
     safety_margin: 5
-
+#}
 tags:
     nofailover: false
     noloadbalance: false

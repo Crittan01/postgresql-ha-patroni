@@ -3,7 +3,7 @@
 
 # ANSIBLE MANAGED - POSTGRESQL: PATRONI SERVERS
 {% for host in groups['postgresql_servers'] %}
-{{ hostvars[host]['ansible_host'] }} {{ host }} {{ host }}.{{ domain_name }}
+{{ hostvars[host]['ansible_host'] }} {{ host }}
 {% endfor %}
-{{ virtual_ip }} ha-vip ha-vip.{{ domain_name }}
+{{ virtual_ip }} ha-vip
 # ANSIBLE MANAGED - POSTGRESQL: PATRONI SERVERS

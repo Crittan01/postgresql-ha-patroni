@@ -106,7 +106,6 @@
         msg:
           - "La IP virtual {{ virtual_ip }}"
           - "{% if vip_check.rc == 0 %}SI esta configurada{% else %}NO configurada{% endif %} en el nodo {{ inventory_hostname | upper }}"
-      when: patroni_role == 'master'
   rescue:
     - name: Notificar fallo en la verificación de IP virtual
       ansible.builtin.fail:

@@ -2,6 +2,10 @@
 # tasks file for roles/validacion
 - name: Validacion Nodos de Patroni
   block:
+    - name: Pausa para Ejecutar patronictl
+      ansible.builtin.pause:
+        seconds: 30
+
     - name: Ejecutar patronictl
       ansible.builtin.shell: |
         set -o pipefail

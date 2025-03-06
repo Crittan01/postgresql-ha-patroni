@@ -1,15 +1,21 @@
 ---
-# Configuración de FQDN
-domain_name: labrhel.com # example.com
+# CONFIGURACION de FQDN
+## Si se tiene Dominio, descomentar y remplazar dato 'example.com'
+
+# domain_name: example.com
+
+## En la 'template' (hosts.j2), del role 'common', ajustar segun lo descrito.
+## 1. {{ hostvars[host]['ansible_host'] }} {{ host }} --> {{ hostvars[host]['ansible_host'] }} {{ host }} {{ host }}.{{ domain_name }}
+## 2. {{ virtual_ip }} ha-vip --> {{ virtual_ip }} ha-vip ha-vip.{{ domain_name }}
 
 # Configuracion del sistema
 selinux_state: permissive
 selinux_policy: targeted
-timezone: America/Bogota
+timezone: America/Bogota # Cambie el valor 'timezone' si asi lo necesita
 
 # Configuracion de red
-network_interface: enp1s0
-virtual_ip: 192.192.20.81
+network_interface: enp1s0 # Obtener el nombre de interfaz de cada Server, para unificar y plasmar en el proceso por 'Keepalived'
+virtual_ip: 192.192.20.81 # IP virtual que flotan entre kas instancias por 'Keepalived'
 
 # Configuracion de POstgreSQL
 postgres_version: 17
@@ -17,4 +23,5 @@ postgres_user: postgres
 postgres_data_dir: /u01/pgsql/17
 postgres_bin_dir: /usr/pgsql-17/bin
 
+# Usuario 'ansible' que interactua
 ansible_usr: ansible

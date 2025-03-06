@@ -51,11 +51,22 @@
       register: package_update
       failed_when: package_update is failed
 
+    - name: Descargar la clave GPG para RHEL
+      ansible.builtin.get_url:
+        url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+        dest: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8"
+        mode: "0644"
+
+    - name: Importar la clave GPG para RHEL
+      ansible.builtin.rpm_key:
+        key: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+        state: present
+
     - name: Instalar Paquetes viables si el gestor de paquetes es DNF
       ansible.builtin.dnf:
         name:
           - dnf-utils
-          - epel-release
+          - "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
           - python3-pip
         state: present
       when: ansible_pkg_mgr == 'dnf'
@@ -66,7 +77,7 @@
       ansible.builtin.yum:
         name:
           - yum-utils
-          - epel-release
+          - "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
           - python3-pip
         state: present
       when: ansible_pkg_mgr == 'yum'

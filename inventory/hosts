@@ -3,7 +3,7 @@
 [postgresql_servers]
 oracle8node1 ansible_host=192.168.20.80 node_id=1 patroni_role=master priority=100
 oracle8node2 ansible_host=192.168.20.82 node_id=2 patroni_role=replica priority=50
-#oracle8node3 ansible_host=192.168.20.84 node_id=3 patroni_role=replica priority=50
+oracle8node3 ansible_host=192.168.20.84 node_id=3 patroni_role=replica priority=50
 
 [patroni_cluster:children]
 postgresql_servers
