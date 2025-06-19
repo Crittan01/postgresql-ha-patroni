@@ -15,7 +15,7 @@
       failed_when: patroni_install is failed
 
     - name: Instalar Patroni y Dependencias si el gestor de paquetes es YUM
-      ansible.builtin.yum_repository:
+      ansible.builtin.yum:
         name:
           - patroni
           - patroni-etcd
