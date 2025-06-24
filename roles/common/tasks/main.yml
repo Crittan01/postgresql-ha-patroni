@@ -1,5 +1,5 @@
 ---
-# # tasks file for roles/common
+# tasks file for roles/common
 # - name: Validar si es RHSM
 #   when:
 #     - ansible_distribution == "RedHat"
@@ -23,12 +23,14 @@
 #       register: rhsm_pass_input
 #       run_once: true
 #       delegate_to: localhost
+#       no_log: true
 #
 #     - name: Registrar variables de credenciales
 #       ansible.builtin.set_fact:
 #         rhsm_username: "{{ rhsm_user_input.user_input }}"
 #         rhsm_password: "{{ rhsm_pass_input.user_input }}"
 #       run_once: true
+#       no_log: true
 #
 #     - name: Desuscribir a Red Hat
 #       community.general.redhat_subscription:
@@ -40,6 +42,10 @@
 #         username: "{{ rhsm_username }}"
 #         password: "{{ rhsm_password }}"
 #         auto_attach: true
+#       register: rhsm_result
+#       failed_when: >
+#         rhsm_result is failed and
+#         ('already registered' not in rhsm_result.msg | lower)
 #   rescue:
 #     - name: Notificar fallo de configuracion RHSM
 #       ansible.builtin.fail:

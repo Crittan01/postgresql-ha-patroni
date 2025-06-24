@@ -2,7 +2,7 @@
 # tasks file for roles/firewall
 - name: Instalacion y Configuracion de Firewall
   block:
-    - name: Instalar Firewall si el gestor de paquetes es DNF
+    - name: Asegurar presencia de firewalld si el gestor de paquetes es DNF
       ansible.builtin.dnf:
         name:
           - firewalld
@@ -11,7 +11,7 @@
       register: firewalld_install
       failed_when: firewalld_install is failed
 
-    - name: Instalar Firewall si el gestor de paquetes es YUM
+    - name: Asegurar presencia de firewalld si el gestor de paquetes es YUM
       ansible.builtin.dnf:
         name:
           - firewalld

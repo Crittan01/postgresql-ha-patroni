@@ -133,6 +133,10 @@
       register: etcd_service
       failed_when: etcd_service is failed
 
+    - name: Pausa para 'etcd'
+      ansible.builtin.pause:
+        seconds: 5
+
     - name: Esperar a que 'etcd' incie
       ansible.builtin.wait_for:
         port: 2379
