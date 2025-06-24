@@ -1,5 +1,50 @@
 ---
-# tasks file for roles/common
+# # tasks file for roles/common
+# - name: Validar si es RHSM
+#   when:
+#     - ansible_distribution == "RedHat"
+#     - ansible_os_family == "RedHat"
+#   block:
+#     - name: Validar SO RedHat
+#       ansible.builtin.debug:
+#         msg: "Sistema {{ ansible_distribution }} - {{ ansible_os_family }}"
+#
+#     - name: Ingrese Usuario RedHat (RHSM)
+#       ansible.builtin.pause:
+#         prompt: "Escriba el usuario registrado RH"
+#       register: rhsm_user_input
+#       run_once: true
+#       delegate_to: localhost
+#
+#     - name: Ingrese Password RedHat (RHSM)
+#       ansible.builtin.pause:
+#         prompt: "Escriba el password registrado RH"
+#         echo: false
+#       register: rhsm_pass_input
+#       run_once: true
+#       delegate_to: localhost
+#
+#     - name: Registrar variables de credenciales
+#       ansible.builtin.set_fact:
+#         rhsm_username: "{{ rhsm_user_input.user_input }}"
+#         rhsm_password: "{{ rhsm_pass_input.user_input }}"
+#       run_once: true
+#
+#     - name: Desuscribir a Red Hat
+#       community.general.redhat_subscription:
+#         state: absent
+#
+#     - name: Suscribir a Red Hat
+#       community.general.redhat_subscription:
+#         state: present
+#         username: "{{ rhsm_username }}"
+#         password: "{{ rhsm_password }}"
+#         auto_attach: true
+#   rescue:
+#     - name: Notificar fallo de configuracion RHSM
+#       ansible.builtin.fail:
+#         msg: "Fallo en la configuracion del RHSM, Proceso detenido"
+
 - name: Configuracion del Sistema
   block:
     - name: Configurar SELinux
@@ -53,23 +98,23 @@
       register: package_update
       failed_when: package_update is failed
 
-    #     - name: Descargar la clave GPG para RHEL
-    #       ansible.builtin.get_url:
-    #         url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
-    #         dest: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8"
-    #         mode: "0644"
-    #
-    #     - name: Importar la clave GPG para RHEL
-    #       ansible.builtin.rpm_key:
-    #         key: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
-    #         state: present
+    - name: Descargar la clave GPG para RHEL
+      ansible.builtin.get_url:
+        url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+        dest: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8"
+        mode: "0644"
+
+    - name: Importar la clave GPG para RHEL
+      ansible.builtin.rpm_key:
+        key: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+        state: present
 
     - name: Instalar Paquetes viables si el gestor de paquetes es DNF
       ansible.builtin.dnf:
         name:
           - dnf-utils
-          - epel-release
-          #          - "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+          #          - epel-release
+          - "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
           - python3-pip
         state: present
       when: ansible_pkg_mgr == 'dnf'
@@ -80,8 +125,8 @@
       ansible.builtin.yum:
         name:
           - yum-utils
-          - epel-release
-          #          - "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+          #          - epel-release
+          - "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
           - python3-pip
         state: present
       when: ansible_pkg_mgr == 'yum'
