@@ -56,7 +56,7 @@
       ansible.builtin.fail:
         msg: "Fallo en la configuración de Patroni. El proceso se ha detenido."
 
-- name: Configuraci de Watchdog
+- name: Configuracion de Watchdog
   block:
     - name: Configurar watchdog
       ansible.builtin.lineinfile:
@@ -111,7 +111,7 @@
 
     - name: Esperar a que el nodo master este OK
       ansible.builtin.pause:
-        seconds: 30
+        seconds: 15
       when:
         - patroni_role == 'master'
         - inventory_hostname == groups['postgresql_servers'][0]

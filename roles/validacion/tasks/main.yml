@@ -4,7 +4,7 @@
   block:
     - name: Pausa para Ejecutar patronictl
       ansible.builtin.pause:
-        seconds: 30
+        seconds: 15
 
     - name: Ejecutar patronictl
       ansible.builtin.shell: |

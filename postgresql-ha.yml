@@ -5,15 +5,15 @@
   become: true
 
   tasks:
-    #    - name: ROLE - Configuraciones Basicas
-    #      ansible.builtin.include_role:
-    #        name: common
-    #      tags: ["common"]
-    #
-    #    - name: ROLE - Configuraciones Firewall
-    #      ansible.builtin.include_role:
-    #        name: firewall
-    #      tags: ["firewall"]
+    - name: ROLE - Configuraciones Basicas
+      ansible.builtin.include_role:
+        name: common
+      tags: ["common"]
+
+    - name: ROLE - Configuraciones Firewall
+      ansible.builtin.include_role:
+        name: firewall
+      tags: ["firewall"]
 
     - name: ROLE - Configuraciones etcd
       ansible.builtin.include_role:

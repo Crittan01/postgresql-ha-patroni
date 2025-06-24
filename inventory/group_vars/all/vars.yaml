@@ -15,7 +15,7 @@ timezone: America/Bogota # Cambie el valor 'timezone' si asi lo necesita
 
 # Configuracion de red
 network_interface: enp1s0 # Obtener el nombre de interfaz de cada Server, para unificar y plasmar en el proceso por 'Keepalived'
-virtual_ip: 192.168.20.84 # IP virtual que flotan entre kas instancias por 'Keepalived'
+virtual_ip: 192.168.20.81 # IP virtual que flotan entre las instancias por 'Keepalived'
 
 # Configuracion de POstgreSQL
 postgres_version: 17
