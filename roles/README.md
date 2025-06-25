@@ -331,6 +331,6 @@ Las contribuciones son bienvenidas. Por favor:
 
 ---
 
-**Autor**: cgarzont (NTTDATA)
+**Autor**: cgarzont (IS NTTDATA Col)
 **Última actualización**: Junio 2025  
 **Versión**: 1.0.0
