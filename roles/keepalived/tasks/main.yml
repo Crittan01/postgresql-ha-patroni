@@ -90,23 +90,23 @@
     - name: Notificar fallo en la configuración de Keepalived
       ansible.builtin.fail:
         msg: "Fallo en la configuración de Keepalived. El proceso se ha detenido."
-
-- name: Verificar IP virtual
-  block:
-    - name: Verificar dirección IP virtual (solo en nodo master)
-      ansible.builtin.shell: |
-        set -o pipefail
-        ip addr show {{ network_interface }} | grep {{ virtual_ip }}
-      register: vip_check
-      changed_when: false
-      failed_when: false
-
-    - name: Mostrar estado de la IP virtual
-      ansible.builtin.debug:
-        msg:
-          - "La IP virtual {{ virtual_ip }}"
-          - "{% if vip_check.rc == 0 %}SI esta configurada{% else %}NO configurada{% endif %} en el nodo {{ inventory_hostname | upper }}"
-  rescue:
-    - name: Notificar fallo en la verificación de IP virtual
-      ansible.builtin.fail:
-        msg: "Fallo en la verificación de IP virtual. El proceso se ha detenido."
+#
+# - name: Verificar IP virtual
+#   block:
+#     - name: Verificar dirección IP virtual (solo en nodo master)
+#       ansible.builtin.shell: |
+#         set -o pipefail
+#         ip addr show {{ network_interface }} | grep {{ virtual_ip }}
+#       register: vip_check
+#       changed_when: false
+#       failed_when: false
+#
+#     - name: Mostrar estado de la IP virtual
+#       ansible.builtin.debug:
+#         msg:
+#           - "La IP virtual {{ virtual_ip }}"
+#           - "{% if vip_check.rc == 0 %}SI esta configurada{% else %}NO configurada{% endif %} en el nodo {{ inventory_hostname | upper }}"
+#   rescue:
+#     - name: Notificar fallo en la verificación de IP virtual
+#       ansible.builtin.fail:
+#         msg: "Fallo en la verificación de IP virtual. El proceso se ha detenido."

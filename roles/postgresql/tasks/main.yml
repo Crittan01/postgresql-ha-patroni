@@ -10,11 +10,41 @@
       changed_when: pg_disable_module.rc == 0
       failed_when: pg_disable_module.rc != 0
 
+    - name: Habilitar el repositorio powertools en Rocky con dnf config-manager
+      ansible.builtin.command:
+        cmd: dnf config-manager --set-enabled powertools
+      when: ansible_distribution == "Rocky"
+      register: codeready
+      changed_when: "'enabled' in codeready.stdout"
+      failed_when: codeready.rc != 0
+
+    - name: Habilitar repositorio CodeReady Builder (Rocky) si el gestor de paquetes es DNF
+      community.general.dnf_config_manager:
+        name:
+          - powertools
+        state: present
+      when:
+        - ansible_pkg_mgr == 'dnf'
+        - ansible_distribution == 'OracleLinux'
+      register: codeready
+      failed_when: codeready is failed
+
+    - name: Habilitar repositorio CodeReady Builder (Rocky) si el gestor de paquetes es YUM
+      ansible.builtin.yum_repository:
+        name:
+          - powertools
+        state: present
+      when:
+        - ansible_pkg_mgr == 'yum'
+        - ansible_distribution == 'OracleLinux'
+      register: codeready
+      failed_when: codeready is failed
+
     - name: Habilitar repositorio CodeReady Builder (Oracle) si el gestor de paquetes es DNF
       community.general.dnf_config_manager:
         name:
           - "ol{{ ansible_distribution_major_version }}_codeready_builder"
-        state: enabled
+        state: present
       when:
         - ansible_pkg_mgr == 'dnf'
         - ansible_distribution == 'OracleLinux'
@@ -32,7 +62,7 @@
       register: codeready
       failed_when: codeready is failed
 
-    - name: Habilitar repositorio CodeReady Builder en (RHEL)
+    - name: Habilitar repositorio CodeReady Builder en (RHEL - RHSM)
       community.general.rhsm_repository:
         name: codeready-builder-for-rhel-{{ ansible_distribution_major_version }}-x86_64-rpms
         state: enabled

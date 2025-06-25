@@ -70,11 +70,11 @@
       register: selinux_reboot
       failed_when: selinux_reboot is failed
 
-    - name: Configurar Zona Horaria
-      community.general.timezone:
-        name: "{{ timezone }}"
-      register: timezone_config
-      failed_when: timezone_config is failed
+  #    - name: Configurar Zona Horaria
+  #      community.general.timezone:
+  #        name: "{{ timezone }}"
+  #      register: timezone_config
+  #      failed_when: timezone_config is failed
   rescue:
     - name: Notificar fallo en la Configuracion FQDN
       ansible.builtin.fail:
@@ -91,6 +91,9 @@
         update_only: true
       when: ansible_pkg_mgr == 'dnf'
       register: package_update
+      retries: 3
+      delay: 5
+      until: package_update is success
       failed_when: package_update is failed
 
     - name: Actualizar todos los paquetes del Servidor si el gestor de paquetes es YUM
@@ -102,6 +105,9 @@
         update_only: true
       when: ansible_pkg_mgr == 'yum'
       register: package_update
+      retries: 3
+      delay: 5
+      until: package_update is success
       failed_when: package_update is failed
 
     - name: Descargar la clave GPG para RHEL

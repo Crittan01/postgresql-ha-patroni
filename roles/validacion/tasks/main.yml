@@ -9,6 +9,7 @@
     - name: Ejecutar patronictl
       ansible.builtin.shell: |
         set -o pipefail
+        cat /etc/rocky-release
         patronictl -c /etc/patroni/patroni.yml list
       changed_when: false
       register: patronictl_out
