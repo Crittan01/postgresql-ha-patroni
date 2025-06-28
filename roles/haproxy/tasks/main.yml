@@ -11,14 +11,14 @@
       register: haproxy_install
       failed_when: haproxy_install is failed
 
-    - name: Instalar HAProxy si el gestor de paquetes es YUM
-      ansible.builtin.yum:
-        name:
-          - haproxy
-        state: present
-      when: ansible_pkg_mgr == 'yum'
-      register: haproxy_install
-      failed_when: haproxy_install is failed
+    #    - name: Instalar HAProxy si el gestor de paquetes es YUM
+    #      ansible.builtin.yum:
+    #        name:
+    #          - haproxy
+    #        state: present
+    #      when: ansible_pkg_mgr == 'yum'
+    #      register: haproxy_install
+    #      failed_when: haproxy_install is failed
 
     - name: Obtener Informacion de '/etc/haproxy/haproxy.cfg'
       ansible.builtin.stat:

@@ -112,27 +112,64 @@
     #        key: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
     #        state: present
 
-    - name: Instalar Paquetes viables si el gestor de paquetes es DNF
+- name: Instalar Paquetes viables si el gestor de paquetes es DNF
+  block:
+    - name: Instalar Paquetes Base
       ansible.builtin.dnf:
         name:
           - dnf-utils
-          - epel-release
           - python3-pip
         state: present
       when: ansible_pkg_mgr == 'dnf'
-      register: basic_packages
-      failed_when: basic_packages is failed
 
-    - name: Instalar yum-utils y Paquetes viables si el gestor de paquetes es YUM
-      ansible.builtin.yum:
-        name:
-          - yum-utils
-          - epel-release
-          - python3-pip
+    - name: Verificar si epel-release está disponible en repos
+      ansible.builtin.command:
+        cmd: dnf list available epel-release
+      register: epel_check
+      changed_when: false
+      failed_when: false
+      when: ansible_pkg_mgr == 'dnf'
+
+    - name: Instalar epel-release desde repositorio si está disponible
+      ansible.builtin.dnf:
+        name: epel-release
         state: present
-      when: ansible_pkg_mgr == 'yum'
-      register: basic_packages
-      failed_when: basic_packages is failed
+      when:
+        - ansible_pkg_mgr == 'dnf'
+        - epel_check.rc == 0
+
+    - name: Instalar EPEL desde URL para RHEL
+      when:
+        - ansible_pkg_mgr == 'dnf'
+        - epel_check.rc != 0
+        - ansible_distribution_major_version in ['8', '9']
+      block:
+        - name: Descargar la clave GPG para RHEL
+          ansible.builtin.get_url:
+            url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+            dest: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+            mode: "0644"
+
+        - name: Importar la clave GPG para RHEL
+          ansible.builtin.rpm_key:
+            key: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+            state: present
+
+        - name: Instalar EPEL desde URL para RHEL
+          ansible.builtin.dnf:
+            name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+            state: present
+
+  #    - name: Instalar yum-utils y Paquetes viables si el gestor de paquetes es YUM
+  #      ansible.builtin.yum:
+  #        name:
+  #          - yum-utils
+  #          - epel-release
+  #          - python3-pip
+  #        state: present
+  #      when: ansible_pkg_mgr == 'yum'
+  #      register: basic_packages
+  #      failed_when: basic_packages is failed
   rescue:
     - name: NOtificar fallo en la configuracion SELinux
       ansible.builtin.fail:

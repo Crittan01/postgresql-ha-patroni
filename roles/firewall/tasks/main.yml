@@ -11,14 +11,14 @@
       register: firewalld_install
       failed_when: firewalld_install is failed
 
-    - name: Asegurar presencia de firewalld si el gestor de paquetes es YUM
-      ansible.builtin.dnf:
-        name:
-          - firewalld
-        state: present
-      when: ansible_pkg_mgr == 'yum'
-      register: firewalld_install
-      failed_when: firewalld_install is failed
+    #    - name: Asegurar presencia de firewalld si el gestor de paquetes es YUM
+    #      ansible.builtin.yum:
+    #        name:
+    #          - firewalld
+    #        state: present
+    #      when: ansible_pkg_mgr == 'yum'
+    #      register: firewalld_install
+    #      failed_when: firewalld_install is failed
 
     - name: Iniciar y Habilitar el servicio de firewalld
       ansible.builtin.service:

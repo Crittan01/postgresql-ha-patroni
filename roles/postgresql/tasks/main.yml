@@ -10,57 +10,75 @@
       changed_when: pg_disable_module.rc == 0
       failed_when: pg_disable_module.rc != 0
 
-    #    - name: Habilitar el repositorio powertools en Rocky con dnf config-manager
-    #      ansible.builtin.command:
-    #        cmd: dnf config-manager --set-enabled crb
-    #      when: ansible_distribution == "Rocky"
-    #      register: codeready
-    #      changed_when: "'enabled' in codeready.stdout"
-    #      failed_when: codeready.rc != 0
+    - name: Habilitar repositorio CodeReady Builder (Rocky) - DNF
+      block:
+        - name: Habilitar repositorio CodeReady Builder (Rocky) si el gestor de paquetes es DNF
+          community.general.dnf_config_manager:
+            name: "{{ codeready_mapping[ansible_distribution_major_version] }}"
+            state: enabled
+          when:
+            - ansible_pkg_mgr == 'dnf'
+            - ansible_distribution == 'Rocky'
+            - ansible_distribution_major_version in codeready_mapping
+          register: codeready
+          vars:
+            codeready_mapping:
+              "8": "powertools"
+              "9": "crb"
+      rescue:
+        - name: Habilitar el repositorio powertools en Rocky con dnf config-manager
+          ansible.builtin.command:
+            cmd: "{{ ansible_pkg_mgr }} config-manager --set-enabled {{ codeready_mapping[ansible_distribution_major_version] }}"
+          when:
+            - ansible_pkg_mgr == 'dnf'
+            - ansible_distribution == "Rocky"
+            - ansible_distribution_major_version in codeready_mapping
+          register: codeready
+          changed_when: "'enabled' in codeready.stdout"
+          failed_when: codeready.rc != 0
+          vars:
+            codeready_mapping:
+              "8": "powertools"
+              "9": "crb"
 
-    - name: Habilitar repositorio CodeReady Builder (Rocky) si el gestor de paquetes es DNF
-      community.general.dnf_config_manager:
-        name:
-          - crb
-        state: enabled
-      when:
-        - ansible_pkg_mgr == 'dnf'
-        - ansible_distribution == 'Rocky'
-      register: codeready
-      failed_when: codeready is failed
-
-    - name: Habilitar repositorio CodeReady Builder (Rocky) si el gestor de paquetes es YUM
-      ansible.builtin.yum_repository:
-        name:
-          - crb
-        state: present
-      when:
-        - ansible_pkg_mgr == 'yum'
-        - ansible_distribution == 'Rocky'
-      register: codeready
-      failed_when: codeready is failed
+    #    - name: Habilitar repositorio CodeReady Builder (Rocky) - YUM
+    #      block:
+    #        - name: Habilitar el repositorio powertools en Rocky con dnf config-manager
+    #          ansible.builtin.command:
+    #            cmd: "{{ ansible_pkg_mgr }} config-manager --set-enabled {{ codeready_mapping[ansible_distribution_major_version] }}"
+    #          when:
+    #            - ansible_pkg_mgr == 'dnf'
+    #            - ansible_distribution == "Rocky"
+    #            - ansible_distribution_major_version in codeready_mapping
+    #          register: codeready
+    #          changed_when: "'enabled' in codeready.stdout"
+    #          failed_when: codeready.rc != 0
+    #          vars:
+    #            codeready_mapping:
+    #              "8": "powertools"
+    #              "9": "crb"
 
     - name: Habilitar repositorio CodeReady Builder (Oracle) si el gestor de paquetes es DNF
       community.general.dnf_config_manager:
         name:
           - "ol{{ ansible_distribution_major_version }}_codeready_builder"
-        state: present
+        state: enabled
       when:
         - ansible_pkg_mgr == 'dnf'
         - ansible_distribution == 'OracleLinux'
       register: codeready
       failed_when: codeready is failed
 
-    - name: Habilitar repositorio CodeReady Builder (Oracle) si el gestor de paquetes es YUM
-      ansible.builtin.yum_repository:
-        name:
-          - "ol{{ ansible_distribution_major_version }}_codeready_builder"
-        state: present
-      when:
-        - ansible_pkg_mgr == 'yum'
-        - ansible_distribution == 'OracleLinux'
-      register: codeready
-      failed_when: codeready is failed
+    #    - name: Habilitar repositorio CodeReady Builder (Oracle) si el gestor de paquetes es YUM
+    #      ansible.builtin.yum_repository:
+    #        name:
+    #          - "ol{{ ansible_distribution_major_version }}_codeready_builder"
+    #        state: present
+    #      when:
+    #        - ansible_pkg_mgr == 'yum'
+    #        - ansible_distribution == 'OracleLinux'
+    #      register: codeready
+    #      failed_when: codeready is failed
 
     - name: Habilitar repositorio CodeReady Builder en (RHEL - RHSM)
       community.general.rhsm_repository:
@@ -82,17 +100,17 @@
       register: postgres_install
       failed_when: postgres_install is failed
 
-    - name: Instalar PostgreSQL si el gestor de paquetes es YUM, version {{ postgres_version }}
-      ansible.builtin.yum_repository:
-        name:
-          - "postgresql{{ postgres_version }}-server"
-          - "postgresql{{ postgres_version }}-contrib"
-          - "postgresql{{ postgres_version }}-devel"
-        state: present
-      when:
-        - ansible_pkg_mgr == 'yum'
-      register: postgres_install
-      failed_when: postgres_install is failed
+    #    - name: Instalar PostgreSQL si el gestor de paquetes es YUM, version {{ postgres_version }}
+    #      ansible.builtin.yum:
+    #        name:
+    #          - "postgresql{{ postgres_version }}-server"
+    #          - "postgresql{{ postgres_version }}-contrib"
+    #          - "postgresql{{ postgres_version }}-devel"
+    #        state: present
+    #      when:
+    #        - ansible_pkg_mgr == 'yum'
+    #      register: postgres_install
+    #      failed_when: postgres_install is failed
 
     - name: Crear directorios para datos de PostgreSQL
       ansible.builtin.file:

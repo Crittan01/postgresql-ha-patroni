@@ -5,9 +5,9 @@
     - name: Mostrar información del sistema
       ansible.builtin.debug:
         msg:
-          - "Distribution: {{ ansible_distribution }}"
-          - "Major Version: {{ ansible_distribution_major_version }}"
-          - "Package Manager: {{ ansible_pkg_mgr }}"
+          - "Distribucion: {{ ansible_distribution }}"
+          - "Version Mayor: {{ ansible_distribution_major_version }}"
+          - "Mannejador de paquetes: {{ ansible_pkg_mgr }}"
 
     - name: Descargar claves GPG PostgreSQL
       ansible.builtin.get_url:
@@ -38,46 +38,33 @@
       register: basic_packages
       failed_when: basic_packages is failed
 
-    - name: Instalar Repo PostgreSQL si el gestor de paquetes es YUM
-      ansible.builtin.yum:
-        name:
-          - "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
-        state: present
-        update_cache: true
-      when: ansible_pkg_mgr == 'yum'
-      register: basic_packages
-      failed_when: basic_packages is failed
+    #    - name: Instalar Repo PostgreSQL si el gestor de paquetes es YUM
+    #      ansible.builtin.yum:
+    #        name:
+    #          - "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+    #        state: present
+    #        update_cache: true
+    #      when: ansible_pkg_mgr == 'yum'
+    #      register: basic_packages
+    #      failed_when: basic_packages is failed
 
     - name: Actualizar caché DNF
       ansible.builtin.dnf:
         update_cache: true
       when: ansible_pkg_mgr == 'dnf'
 
+    #    - name: Actualizar caché YUM
+    #      ansible.builtin.yum:
+    #        update_cache: true
+    #      when: ansible_pkg_mgr == 'yum'
+
     - name: Verificar si el repositorio PostgreSQL está instalado
       ansible.builtin.stat:
         path: "/etc/yum.repos.d/pgdg-redhat-all.repo"
       register: pgdg_repo_file
 
-    #    - name: Habilitar repositorio (extras) si el gestor de paquetes es DNF - pgdg-rhel{{ ansible_distribution_major_version }}
-    #      ansible.builtin.shell: |
-    #        set -o pipefail
-    #        dnf config-manager --set-enabled pgdg-rhel{{ ansible_distribution_major_version }}-extras
-    #      register: pgdg_extras
-    #      changed_when: pgdg_extras.rc == 0
-    #      failed_when: pgdg_extras.rc != 0
-    #      when: ansible_pkg_mgr == 'dnf'
-    #
-    #    - name: Habilitar repositorio (extras) si el gestor de paquetes es YUM - pgdg-rhel{{ ansible_distribution_major_version }}
-    #      ansible.builtin.shell: |
-    #        set -o pipefail
-    #        yum config-manager --set-enabled pgdg-rhel{{ ansible_distribution_major_version }}-extras
-    #      register: pgdg_extras
-    #      changed_when: pgdg_extras.rc == 0
-    #      failed_when: pgdg_extras.rc != 0
-    #      when: ansible_pkg_mgr == 'yum'
-
     # Habilitar el repositorio extras
-    - name: Habilitar repositorio extras PostgreSQL
+    - name: Habilitar repositorio extras PostgreSQL - DNF
       block:
         - name: Habilitar repo extras PostgreSQL con dnf_config_manager
           community.general.dnf_config_manager:
@@ -89,21 +76,22 @@
           until: enable_repo_result is succeeded
 
       rescue:
-        - name: Método alternativo - Habilitar con command
+        - name: (Rescue) - Habilitar repo extras PostgreSQL con command
           ansible.builtin.command:
             cmd: "{{ ansible_pkg_mgr }} config-manager --set-enabled pgdg-rhel{{ ansible_distribution_major_version }}-extras"
-          when: ansible_pkg_mgr in ['dnf', 'yum']
+          when: ansible_pkg_mgr == 'dnf'
           register: enable_cmd_result
           changed_when: enable_cmd_result.rc == 0
 
-    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es YUM
-      ansible.builtin.yum_repository:
-        name:
-          - pgdg-rhel{{ ansible_distribution_major_version }}-extras
-        state: present
-      when: ansible_pkg_mgr == 'yum'
-      register: pgdg_extras
-      failed_when: pgdg_extras is failed
+    # Habilitar el repositorio extras
+    #    - name: Habilitar repositorio pgdg-rhel8-extras - YUM
+    #      block:
+    #        - name: (Rescue) - Habilitar repo extras PostgreSQL con command
+    #          ansible.builtin.command:
+    #            cmd: "{{ ansible_pkg_mgr }} config-manager --set-enabled pgdg-rhel{{ ansible_distribution_major_version }}-extras"
+    #          when: ansible_pkg_mgr == 'yum'
+    #          register: enable_cmd_result
+    #          changed_when: enable_cmd_result.rc == 0
 
     - name: Instalar 'etcd' si el gestor de paquetes es DNF
       ansible.builtin.dnf:
@@ -114,14 +102,14 @@
       register: pgdg_extras
       failed_when: pgdg_extras is failed
 
-    - name: Instalar 'etcd' si el gestor de paquetes es YUM
-      ansible.builtin.yum:
-        name:
-          - etcd
-        state: present
-      when: ansible_pkg_mgr == 'yum'
-      register: pgdg_extras
-      failed_when: pgdg_extras is failed
+    #    - name: Instalar 'etcd' si el gestor de paquetes es YUM
+    #      ansible.builtin.yum:
+    #        name:
+    #          - etcd
+    #        state: present
+    #      when: ansible_pkg_mgr == 'yum'
+    #      register: pgdg_extras
+    #      failed_when: pgdg_extras is failed
 
     - name: Obtener Informacion de '/etc/etcd/etcd.conf'
       ansible.builtin.stat:

@@ -11,14 +11,14 @@
       register: keepalived_install
       failed_when: keepalived_install is failed
 
-    - name: Instalar Keepalived si el gestor de paquetes es YUM
-      ansible.builtin.yum:
-        name:
-          - keepalived
-        state: present
-      when: ansible_pkg_mgr == 'yum'
-      register: keepalived_install
-      failed_when: keepalived_install is failed
+  #    - name: Instalar Keepalived si el gestor de paquetes es YUM
+  #      ansible.builtin.yum:
+  #        name:
+  #          - keepalived
+  #        state: present
+  #      when: ansible_pkg_mgr == 'yum'
+  #      register: keepalived_install
+  #      failed_when: keepalived_install is failed
   rescue:
     - name: Notificar fallo en la instalación de Keepalived
       ansible.builtin.fail:

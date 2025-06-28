@@ -14,17 +14,17 @@
       register: patroni_install
       failed_when: patroni_install is failed
 
-    - name: Instalar Patroni y Dependencias si el gestor de paquetes es YUM
-      ansible.builtin.yum:
-        name:
-          - patroni
-          - patroni-etcd
-          - watchdog
-        state: present
-      when:
-        - ansible_pkg_mgr == 'yum'
-      register: patroni_install
-      failed_when: patroni_install is failed
+  #    - name: Instalar Patroni y Dependencias si el gestor de paquetes es YUM
+  #      ansible.builtin.yum:
+  #        name:
+  #          - patroni
+  #          - patroni-etcd
+  #          - watchdog
+  #        state: present
+  #      when:
+  #        - ansible_pkg_mgr == 'yum'
+  #      register: patroni_install
+  #      failed_when: patroni_install is failed
   rescue:
     - name: Notificar fallo en la instalación de Patroni
       ansible.builtin.fail:
@@ -111,7 +111,7 @@
 
     - name: Esperar a que el nodo master este OK
       ansible.builtin.pause:
-        seconds: 15
+        seconds: 10
       when:
         - patroni_role == 'master'
         - inventory_hostname == groups['postgresql_servers'][0]
