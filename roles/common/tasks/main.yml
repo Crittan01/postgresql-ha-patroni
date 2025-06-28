@@ -59,16 +59,7 @@
         policy: "{{ selinux_policy }}"
       register: selinux_config
       failed_when: selinux_config is failed
-
-    - name: Reiniciar el servidor si SELinux lo requiere
-      ansible.builtin.reboot:
-        msg: "Reinicio tras cambio de SELinux"
-        connect_timeout: 5
-        reboot_timeout: 600
-        post_reboot_delay: 5
-      when: selinux_config.changed # noqa: no-handler
-      register: selinux_reboot
-      failed_when: selinux_reboot is failed
+      notify: Reiniciar el servidor si SELinux lo requiere
 
   #    - name: Configurar Zona Horaria
   #      community.general.timezone:
@@ -110,23 +101,22 @@
       until: package_update is success
       failed_when: package_update is failed
 
-    - name: Descargar la clave GPG para RHEL
-      ansible.builtin.get_url:
-        url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
-        dest: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8"
-        mode: "0644"
-
-    - name: Importar la clave GPG para RHEL
-      ansible.builtin.rpm_key:
-        key: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
-        state: present
+    #    - name: Descargar la clave GPG para RHEL
+    #      ansible.builtin.get_url:
+    #        url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+    #        dest: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+    #        mode: "0644"
+    #
+    #    - name: Importar la clave GPG para RHEL
+    #      ansible.builtin.rpm_key:
+    #        key: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+    #        state: present
 
     - name: Instalar Paquetes viables si el gestor de paquetes es DNF
       ansible.builtin.dnf:
         name:
           - dnf-utils
-          #          - epel-release
-          - "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+          - epel-release
           - python3-pip
         state: present
       when: ansible_pkg_mgr == 'dnf'
@@ -137,8 +127,7 @@
       ansible.builtin.yum:
         name:
           - yum-utils
-          #          - epel-release
-          - "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+          - epel-release
           - python3-pip
         state: present
       when: ansible_pkg_mgr == 'yum'
@@ -156,6 +145,8 @@
         name: "{{ postgres_user }}"
         shell: /bin/bash
         createhome: true
+        home: "/1home/{{ postgres_user }}"
+        comment: "Usuario {{ postgres_user | capitalize }}"
         state: present
         password: "{{ postgres_password }}"
       register: postgres_user_result
@@ -163,8 +154,8 @@
 
     - name: Configurar privilegios sudo para el usuario postgres
       ansible.builtin.lineinfile:
-        path: /etc/sudoers.d/postgres
-        line: "postgres ALL=(ALL) NOPASSWD:ALL"
+        path: "/etc/sudoers.d/{{ postgres_user }}"
+        line: "{{ postgres_user }} ALL=(ALL) NOPASSWD:ALL"
         state: present
         mode: "0440"
         create: true

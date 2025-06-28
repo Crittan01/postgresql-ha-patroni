@@ -10,33 +10,33 @@
       changed_when: pg_disable_module.rc == 0
       failed_when: pg_disable_module.rc != 0
 
-    - name: Habilitar el repositorio powertools en Rocky con dnf config-manager
-      ansible.builtin.command:
-        cmd: dnf config-manager --set-enabled powertools
-      when: ansible_distribution == "Rocky"
-      register: codeready
-      changed_when: "'enabled' in codeready.stdout"
-      failed_when: codeready.rc != 0
+    #    - name: Habilitar el repositorio powertools en Rocky con dnf config-manager
+    #      ansible.builtin.command:
+    #        cmd: dnf config-manager --set-enabled crb
+    #      when: ansible_distribution == "Rocky"
+    #      register: codeready
+    #      changed_when: "'enabled' in codeready.stdout"
+    #      failed_when: codeready.rc != 0
 
     - name: Habilitar repositorio CodeReady Builder (Rocky) si el gestor de paquetes es DNF
       community.general.dnf_config_manager:
         name:
-          - powertools
-        state: present
+          - crb
+        state: enabled
       when:
         - ansible_pkg_mgr == 'dnf'
-        - ansible_distribution == 'OracleLinux'
+        - ansible_distribution == 'Rocky'
       register: codeready
       failed_when: codeready is failed
 
     - name: Habilitar repositorio CodeReady Builder (Rocky) si el gestor de paquetes es YUM
       ansible.builtin.yum_repository:
         name:
-          - powertools
+          - crb
         state: present
       when:
         - ansible_pkg_mgr == 'yum'
-        - ansible_distribution == 'OracleLinux'
+        - ansible_distribution == 'Rocky'
       register: codeready
       failed_when: codeready is failed
 

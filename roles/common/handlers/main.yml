@@ -1,2 +1,11 @@
 ---
 # handlers file for roles/common
+- name: Reiniciar el servidor si SELinux lo requiere
+  ansible.builtin.reboot:
+    msg: "Reinicio tras cambio de SELinux"
+    connect_timeout: 5
+    reboot_timeout: 600
+    post_reboot_delay: 5
+  when: selinux_config.changed # noqa: no-handler
+  register: selinux_reboot
+  failed_when: selinux_reboot is failed

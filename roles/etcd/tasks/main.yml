@@ -2,27 +2,31 @@
 # tasks file for roles/etcd
 - name: Habiliar y configurar etcd
   block:
-    - name: Descargar la clave GPG para RHEL
+    - name: Mostrar información del sistema
+      ansible.builtin.debug:
+        msg:
+          - "Distribution: {{ ansible_distribution }}"
+          - "Major Version: {{ ansible_distribution_major_version }}"
+          - "Package Manager: {{ ansible_pkg_mgr }}"
+
+    - name: Descargar claves GPG PostgreSQL
       ansible.builtin.get_url:
-        url: "https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL"
-        dest: "/etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-RHEL"
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }}"
         mode: "0644"
+      loop:
+        - url: https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL
+          dest: /etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-RHEL
+        - url: https://download.postgresql.org/pub/repos/yum/keys/RPM-GPG-KEY-PGDG
+          dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG
 
-    - name: Importar la clave GPG para RHEL
+    - name: Importar claves GPG PostgreSQL
       ansible.builtin.rpm_key:
-        key: "/etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-RHEL"
+        key: "{{ item }}"
         state: present
-
-    - name: Descargar la clave GPG para PostgreSQL
-      ansible.builtin.get_url:
-        url: "https://download.postgresql.org/pub/repos/yum/keys/RPM-GPG-KEY-PGDG"
-        dest: "/etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG"
-        mode: "0644"
-
-    - name: Importar la clave GPG para PostgreSQL
-      ansible.builtin.rpm_key:
-        key: "/etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG"
-        state: present
+      loop:
+        - /etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-RHEL
+        - /etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG
 
     - name: Instalar Repo PostgreSQL si el gestor de paquetes es DNF
       ansible.builtin.dnf:
@@ -44,41 +48,62 @@
       register: basic_packages
       failed_when: basic_packages is failed
 
-    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es DNF
-      ansible.builtin.shell: |
-        set -o pipefail
-        dnf config-manager --set-enabled pgdg-rhel8-extras
-      register: pgdg_extras
-      changed_when: pgdg_extras.rc == 0
-      failed_when: pgdg_extras.rc != 0
+    - name: Actualizar caché DNF
+      ansible.builtin.dnf:
+        update_cache: true
       when: ansible_pkg_mgr == 'dnf'
 
-    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es YUM
-      ansible.builtin.shell: |
-        set -o pipefail
-        yum config-manager --set-enabled pgdg-rhel8-extras
-      register: pgdg_extras
-      changed_when: pgdg_extras.rc == 0
-      failed_when: pgdg_extras.rc != 0
-      when: ansible_pkg_mgr == 'yum'
+    - name: Verificar si el repositorio PostgreSQL está instalado
+      ansible.builtin.stat:
+        path: "/etc/yum.repos.d/pgdg-redhat-all.repo"
+      register: pgdg_repo_file
 
-    #    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es DNF
-    #      community.general.dnf_config_manager:
-    #        name:
-    #          - pgdg-rhel8-extras
-    #        state: enabled
+    #    - name: Habilitar repositorio (extras) si el gestor de paquetes es DNF - pgdg-rhel{{ ansible_distribution_major_version }}
+    #      ansible.builtin.shell: |
+    #        set -o pipefail
+    #        dnf config-manager --set-enabled pgdg-rhel{{ ansible_distribution_major_version }}-extras
+    #      register: pgdg_extras
+    #      changed_when: pgdg_extras.rc == 0
+    #      failed_when: pgdg_extras.rc != 0
     #      when: ansible_pkg_mgr == 'dnf'
-    #      register: pgdg_extras
-    #      failed_when: pgdg_extras is failed
     #
-    #    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es YUM
-    #      ansible.builtin.yum_repository:
-    #        name:
-    #          - pgdg-rhel8-extras
-    #        state: present
-    #      when: ansible_pkg_mgr == 'yum'
+    #    - name: Habilitar repositorio (extras) si el gestor de paquetes es YUM - pgdg-rhel{{ ansible_distribution_major_version }}
+    #      ansible.builtin.shell: |
+    #        set -o pipefail
+    #        yum config-manager --set-enabled pgdg-rhel{{ ansible_distribution_major_version }}-extras
     #      register: pgdg_extras
-    #      failed_when: pgdg_extras is failed
+    #      changed_when: pgdg_extras.rc == 0
+    #      failed_when: pgdg_extras.rc != 0
+    #      when: ansible_pkg_mgr == 'yum'
+
+    # Habilitar el repositorio extras
+    - name: Habilitar repositorio extras PostgreSQL
+      block:
+        - name: Habilitar repo extras PostgreSQL con dnf_config_manager
+          community.general.dnf_config_manager:
+            name: "pgdg-rhel{{ ansible_distribution_major_version }}-extras"
+            state: enabled
+          when:
+            - ansible_pkg_mgr == 'dnf'
+          register: enable_repo_result
+          until: enable_repo_result is succeeded
+
+      rescue:
+        - name: Método alternativo - Habilitar con command
+          ansible.builtin.command:
+            cmd: "{{ ansible_pkg_mgr }} config-manager --set-enabled pgdg-rhel{{ ansible_distribution_major_version }}-extras"
+          when: ansible_pkg_mgr in ['dnf', 'yum']
+          register: enable_cmd_result
+          changed_when: enable_cmd_result.rc == 0
+
+    - name: Habilitar repositorio pgdg-rhel8-extras si el gestor de paquetes es YUM
+      ansible.builtin.yum_repository:
+        name:
+          - pgdg-rhel{{ ansible_distribution_major_version }}-extras
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+      register: pgdg_extras
+      failed_when: pgdg_extras is failed
 
     - name: Instalar 'etcd' si el gestor de paquetes es DNF
       ansible.builtin.dnf:
@@ -125,11 +150,12 @@
       register: etcd_backup
       failed_when: etcd_backup is failed
 
-    - name: Iniciar y Habiliar servicio de etcd
-      ansible.builtin.service:
+    - name: Reiniciar etcd
+      ansible.builtin.systemd:
         name: etcd
-        state: started
+        state: restarted
         enabled: true
+        daemon_reload: true
       register: etcd_service
       failed_when: etcd_service is failed
 
@@ -145,19 +171,31 @@
       register: etcd_wait
       failed_when: etcd_wait is failed
 
+    - name: Obtener información de usuarios
+      ansible.builtin.user:
+        name: "{{ item }}"
+      loop:
+        - "{{ ansible_usr }}"
+        - "{{ postgres_user }}"
+      register: user_info
+      check_mode: true
+      changed_when: false
+
     - name: Configurar variables de entorno de etcd
       ansible.builtin.blockinfile:
-        path: "/home/{{ item }}/.bash_profile"
+        path: "{{ item.home }}/.bash_profile"
         block: |
+          # etcd cluster endpoints
           {% for host in groups['postgresql_servers'] %}
           export {{ host }}={{ hostvars[host]['ansible_host'] }}
           {% endfor %}
           export ENDPOINTS={% for host in groups['postgresql_servers'] %}${{ host }}:2379{% if not loop.last %},{% endif %}{% endfor %}
-      loop:
-        - "{{ ansible_usr }}"
-        - "{{ postgres_user }}"
-      register: etcd_env
-      failed_when: etcd_env is failed
+        create: true
+        mode: "0644"
+        owner: "{{ item.name }}"
+        group: "{{ item.group }}"
+      loop: "{{ user_info.results }}"
+      when: item.home is defined
 
     - name: Ejecutar etcdctl con variables de entorno configuradas
       ansible.builtin.shell: |
