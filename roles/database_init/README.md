@@ -6,14 +6,14 @@ Este rol de Ansible automatiza la inicialización completa de una base de datos 
 
 ## Características
 
-- ✅ Detección automática del nodo líder Patroni
-- ✅ Creación de usuario, base de datos y schema
-- ✅ Configuración de parámetros (search_path, timezone)
-- ✅ Creación de estructura de tablas con constraints
-- ✅ Carga de datos iniciales desde scripts SQL
-- ✅ Generación de informe detallado post-instalación
-- ✅ Manejo robusto de errores con rescue blocks
-- ✅ Idempotencia completa
+- Detección automática del nodo líder Patroni
+- Creación de usuario, base de datos y schema
+- Configuración de parámetros (search_path, timezone)
+- Creación de estructura de tablas con constraints
+- Carga de datos iniciales desde scripts SQL
+- Generación de informe detallado post-instalación
+- Manejo robusto de errores con rescue blocks
+- Idempotencia completa
 
 ## Requisitos
 
@@ -126,7 +126,7 @@ rocky9node2 ansible_host=192.168.20.82
 | `data_loading`      | Solo carga datos desde SQL      |
 | `report`            | Solo genera el informe final    |
 
-## 🔄 Flujo de Ejecución
+## Flujo de Ejecución
 
 ```mermaid
 graph TD
@@ -240,7 +240,7 @@ Al finalizar, el rol genera un informe detallado que incluye:
 - Limite el acceso al usuario de base de datos creado
 - Configure pg_hba.conf apropiadamente
 
-## 👥 Autor
+## Autor
 
 ---
 
