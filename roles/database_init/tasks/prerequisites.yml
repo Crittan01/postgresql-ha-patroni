@@ -1,0 +1,15 @@
+---
+# prerequisitos
+- name: Instalar psycopg2 desde repositorios si el gestor es DNF
+  ansible.builtin.dnf:
+    name:
+      - python3-psycopg2
+    state: present
+  become: true
+  when: ansible_pkg_mgr == 'dnf'
+
+- name: Esperar a que PostgreSQL esté disponible
+  ansible.builtin.wait_for:
+    port: 5432
+    host: "{{ ansible_host }}"
+    timeout: 300

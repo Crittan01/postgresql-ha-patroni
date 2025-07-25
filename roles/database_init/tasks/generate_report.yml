@@ -1,0 +1,79 @@
+---
+# generate_report
+- name: Forzar ejecución de handlers antes del informe
+  ansible.builtin.meta: flush_handlers
+
+- name: Generar resumen final de la base de datos
+  when: is_leader | bool
+  block:
+    - name: Consultar estado final de las tablas
+      community.postgresql.postgresql_query:
+        db: "{{ db_name }}"
+        query: |
+          WITH table_counts AS (
+            SELECT
+              'document_types' as tabla,
+              COUNT(*) as registros,
+              MAX(creation_date) as ultimo_registro
+            FROM {{ db_schema }}.document_types
+            UNION ALL
+            SELECT
+              'formalities' as tabla,
+              COUNT(*) as registros,
+              MAX(creation_date) as ultimo_registro
+            FROM {{ db_schema }}.formalities
+            UNION ALL
+            SELECT
+              'metadata' as tabla,
+              COUNT(*) as registros,
+              MAX(creation_date) as ultimo_registro
+            FROM {{ db_schema }}.metadata
+            UNION ALL
+            SELECT
+              'template_labels' as tabla,
+              COUNT(*) as registros,
+              MAX(creation_date) as ultimo_registro
+            FROM {{ db_schema }}.template_labels
+            UNION ALL
+            SELECT
+              'templates' as tabla,
+              COUNT(*) as registros,
+              MAX(creation_date) as ultimo_registro
+            FROM {{ db_schema }}.templates
+          )
+          SELECT
+            tabla,
+            registros,
+            CASE
+              WHEN ultimo_registro IS NOT NULL
+              THEN to_timestamp(ultimo_registro)::text
+              ELSE 'N/A'
+            END as ultima_actualizacion,
+            SUM(registros) OVER() as total_general
+          FROM table_counts
+          ORDER BY tabla;
+        login_host: "{{ ansible_host }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        port: 5432
+      register: resumen_final
+
+    - name: Mostrar resumen de inicialización
+      ansible.builtin.debug:
+        msg: |
+          ╔═══════════════════════════════════════════════════════════════════════════════
+          ║                    RESUMEN DE INICIALIZACIÓN DE BASE DE DATOS
+          ╠═══════════════════════════════════════════════════════════════════════════════
+          ║ Base de Datos: {{ db_name }}
+          ║ Schema: {{ db_schema }}
+          ║ Usuario: {{ db_user }}
+          ║ Host: {{ ansible_host }}
+          ╠═══════════════════════════════════════════════════════════════════════════════
+          ║                              ESTADO DE TABLAS
+          ╠═══════════════════════════════════════════════════════════════════════════════
+          {% for tabla in resumen_final.query_result %}
+          ║ {{ "%-20s" | format(tabla.tabla) }} │ {{ "%6d" | format(tabla.registros) }} registros │ Última: {{ tabla.ultima_actualizacion[:19] }}
+          {% endfor %}
+          ╠═══════════════════════════════════════════════════════════════════════════════
+          ║ TOTAL DE REGISTROS: {{ resumen_final.query_result[0].total_general }}
+          ╚═══════════════════════════════════════════════════════════════════════════════

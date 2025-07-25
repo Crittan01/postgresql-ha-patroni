@@ -1,0 +1,17 @@
+---
+# check_leader
+- name: Verificar nodo líder del cluster Patroni
+  ansible.builtin.uri:
+    url: "http://{{ ansible_host }}:8008/leader"
+    method: GET
+    status_code: [200, 503]
+  register: patroni_leader
+  failed_when: false
+
+- name: Establecer variable 'is_leader'
+  ansible.builtin.set_fact:
+    is_leader: "{{ patroni_leader.status == 200 }}"
+
+- name: Mostrar estado del nodo
+  ansible.builtin.debug:
+    msg: "Nodo {{ inventory_hostname }} es líder: {{ is_leader }}"

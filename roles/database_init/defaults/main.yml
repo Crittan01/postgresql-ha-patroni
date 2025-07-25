@@ -1,0 +1,7 @@
+---
+# defaults file for roles/database_init
+db_name: doc-mgr_template-mgr-db
+db_schema: mgrtigodb
+db_user: admin_db_gestordoc
+db_password: admin_db_1*
+db_timezone: "America/Bogota"

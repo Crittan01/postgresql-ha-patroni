@@ -1,0 +1,35 @@
+---
+# create_database
+- name: Crear usuario si no existe
+  community.postgresql.postgresql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    role_attr_flags: SUPERUSER
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    port: 5432
+    state: present
+
+- name: Crear la base de datos si no existe
+  community.postgresql.postgresql_db:
+    name: "{{ db_name }}"
+    owner: "{{ db_user }}"
+    encoding: UTF8
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    port: 5432
+    template: template0
+    state: present
+
+- name: Crear Schema si no existe
+  community.postgresql.postgresql_schema:
+    name: "{{ db_schema }}"
+    database: "{{ db_name }}"
+    owner: "{{ db_user }}"
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    port: 5432
+    state: present

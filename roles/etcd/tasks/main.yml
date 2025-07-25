@@ -185,29 +185,31 @@
       loop: "{{ user_info.results }}"
       when: item.home is defined
 
-    - name: Ejecutar etcdctl con variables de entorno configuradas
-      ansible.builtin.shell: |
-        set -o pipefail
-        etcdctl endpoint status --write-out=table --endpoints="$ENDPOINTS"
-      environment:
-        ENDPOINTS: "{{ my_endpoints }}"
-      vars:
-        my_endpoints: "{% for host in groups['postgresql_servers'] %}{{ host }}:2379{% if not loop.last %},{% endif %}{% endfor %}"
-      changed_when: false
-      register: etcdctl_out
-
     #    - name: Ejecutar etcdctl con variables de entorno configuradas
     #      ansible.builtin.shell: |
-    #        . /home/{{ ansible_usr }}/.bash_profile
+    #        set -o pipefail
     #        etcdctl endpoint status --write-out=table --endpoints="$ENDPOINTS"
-    #      args:
-    #        executable: /bin/bash
+    #      environment:
+    #        ENDPOINTS: "{{ my_endpoints }}"
+    #      vars:
+    #        my_endpoints: "{% for host in groups['postgresql_servers'] %}{{ host }}:2379{% if not loop.last %},{% endif %}{% endfor %}"
     #      changed_when: false
     #      register: etcdctl_out
 
+    - name: Ejecutar etcdctl con variables de entorno configuradas
+      ansible.builtin.shell: |
+        . {{ item.home }}/.bash_profile
+        etcdctl endpoint status --write-out=table --endpoints="$ENDPOINTS"
+      args:
+        executable: /bin/bash
+      loop: "{{ user_info.results }}"
+      changed_when: false
+      register: etcdctl_out
+      when: item.home is defined
+
     - name: Debug - Ejecutar etcdctl
       ansible.builtin.debug:
-        var: etcdctl_out.stdout_lines
+        var: etcdctl_out.results.stdout_lines
   rescue:
     - name: Notificar fallo en la configuración de etcd
       ansible.builtin.fail:

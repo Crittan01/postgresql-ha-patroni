@@ -1,0 +1,112 @@
+---
+# handlers file for roles/database_init
+- name: Agregar constraint document_types
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    query: |
+      ALTER TABLE {{ db_schema }}.document_types
+      ADD CONSTRAINT document_types_lifecycle_status_check
+      CHECK ((lifecycle_status)::text = ANY (ARRAY['PUBLISHED'::character varying, 'DELETED'::character varying]::text[]));
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    port: 5432
+
+# Handler para formalities
+- name: Agregar constraints formalities
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    query: |
+      -- CHECK constraint
+      ALTER TABLE {{ db_schema }}.formalities
+      ADD CONSTRAINT formalities_lifecycle_status_check
+      CHECK (lifecycle_status IN ('PUBLISHED', 'ARCHIVED', 'DELETED'));
+
+      -- PRIMARY KEY
+      ALTER TABLE {{ db_schema }}.formalities
+      ADD CONSTRAINT formalities_pkey PRIMARY KEY (name);
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    port: 5432
+  failed_when: false # Ignorar errores si ya existe
+
+# Handler para metadata
+- name: Agregar constraints metadata
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    query: |
+      -- PRIMARY KEY
+      ALTER TABLE {{ db_schema }}.metadata
+      ADD CONSTRAINT metadata_pkey PRIMARY KEY (name);
+
+      -- Índice para FK
+      CREATE INDEX idx_metadata_document_type
+      ON {{ db_schema }}.metadata (document_type_name);
+
+      -- FOREIGN KEY
+      ALTER TABLE {{ db_schema }}.metadata
+      ADD CONSTRAINT fk_metadata_document_types
+      FOREIGN KEY (document_type_name)
+      REFERENCES {{ db_schema }}.document_types(name);
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    port: 5432
+  failed_when: false # Ignorar errores si ya existe
+
+# Handler para template_labels
+- name: Agregar constraints template_labels
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    query: |
+      -- CHECK constraint
+      ALTER TABLE {{ db_schema }}.template_labels
+      ADD CONSTRAINT template_labels_value_type_check
+      CHECK (value_type IN ('ALPHANUMERIC', 'ALPHABETIC', 'NUMBER', 'BOOLEAN',
+                           'DATE', 'IMAGE', 'CONTRACT', 'CASE'));
+
+      -- PRIMARY KEY compuesta
+      ALTER TABLE {{ db_schema }}.template_labels
+      ADD CONSTRAINT template_labels_pkey
+      PRIMARY KEY (template_name, template_version, name);
+
+      -- Índice para FK
+      CREATE INDEX fk_template_labels_templates_idx
+      ON {{ db_schema }}.template_labels (template_name, template_version);
+
+      -- FOREIGN KEY
+      ALTER TABLE {{ db_schema }}.template_labels
+      ADD CONSTRAINT fk_template_labels_templates
+      FOREIGN KEY (template_name, template_version)
+      REFERENCES {{ db_schema }}.templates(name, version);
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    port: 5432
+  failed_when: false # Ignorar errores si ya existe
+
+# Handler para templates
+- name: Agregar constraints templates
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    query: |
+      -- CHECK constraint para lifecycle_status
+      ALTER TABLE {{ db_schema }}.templates
+      ADD CONSTRAINT templates_lifecycle_status_check
+      CHECK (lifecycle_status IN ('PUBLISHED', 'ARCHIVED', 'DELETED'));
+
+      -- CHECK constraint para type
+      ALTER TABLE {{ db_schema }}.templates
+      ADD CONSTRAINT templates_type_check
+      CHECK (type IN ('PDF', 'JASPER'));
+
+      -- PRIMARY KEY compuesta
+      ALTER TABLE {{ db_schema }}.templates
+      ADD CONSTRAINT templates_pkey
+      PRIMARY KEY (name, version);
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    port: 5432
+  failed_when: false # Ignorar errores si ya existe

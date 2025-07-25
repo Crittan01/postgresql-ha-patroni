@@ -8,39 +8,62 @@
     - name: ROLE - Configuraciones Basicas
       ansible.builtin.include_role:
         name: common
+        apply:
+          tags: common
       tags: ["common"]
 
     - name: ROLE - Configuraciones Firewall
       ansible.builtin.include_role:
         name: firewall
+        apply:
+          tags: firewall
       tags: ["firewall"]
 
     - name: ROLE - Configuraciones etcd
       ansible.builtin.include_role:
         name: etcd
+        apply:
+          tags: etcd
       tags: ["etcd"]
 
     - name: ROLE - Instalación de PostgreSQL
       ansible.builtin.include_role:
         name: postgresql
+        apply:
+          tags: postgresql
       tags: ["postgresql"]
 
     - name: ROLE - Instalación de Patroni
       ansible.builtin.include_role:
         name: patroni
+        apply:
+          tags: patroni
       tags: ["patroni"]
 
     - name: ROLE - Instalación de HAproxy
       ansible.builtin.include_role:
         name: haproxy
+        apply:
+          tags: haproxy
       tags: ["haproxy"]
 
     - name: ROLE - Instalación de Keepalived
       ansible.builtin.include_role:
         name: keepalived
+        apply:
+          tags: keepalived
       tags: ["keepalived"]
 
     - name: ROLE - Validacion nodos Patroni
       ansible.builtin.include_role:
         name: validacion
+        apply:
+          tags: validacion
       tags: ["validacion"]
+
+    - name: ROLE - Inicializar la DB
+      ansible.builtin.include_role:
+        name: database_init
+        apply:
+          tags: database_init
+      tags: ["database_init"]

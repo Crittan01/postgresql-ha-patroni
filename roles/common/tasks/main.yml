@@ -117,14 +117,14 @@
     - name: Instalar Paquetes Base
       ansible.builtin.dnf:
         name:
-          - dnf-utils
-          - python3-pip
+          - dnf-utils # Asociado a dnf config-manager
+        #          - python3-pip
         state: present
       when: ansible_pkg_mgr == 'dnf'
 
     - name: Verificar si epel-release está disponible en repos
       ansible.builtin.command:
-        cmd: dnf list available epel-release
+        cmd: dnf list available epel-release # Proporciona 'etcd'
       register: epel_check
       changed_when: false
       failed_when: false
@@ -132,7 +132,7 @@
 
     - name: Instalar epel-release desde repositorio si está disponible
       ansible.builtin.dnf:
-        name: epel-release
+        name: epel-release # Proporciona 'etcd'
         state: present
       when:
         - ansible_pkg_mgr == 'dnf'
@@ -182,7 +182,7 @@
         name: "{{ postgres_user }}"
         shell: /bin/bash
         createhome: true
-        home: "/1home/{{ postgres_user }}"
+        home: "/lhome/{{ postgres_user }}"
         comment: "Usuario {{ postgres_user | capitalize }}"
         state: present
         password: "{{ postgres_password }}"

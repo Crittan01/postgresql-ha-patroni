@@ -1,0 +1,76 @@
+---
+# configure_database
+- name: Verificar configuración actual
+  block:
+    - name: Verificar search_path actual
+      community.postgresql.postgresql_query:
+        db: "{{ db_name }}"
+        query: "SHOW search_path;"
+        login_host: "{{ ansible_host }}"
+        login_user: "{{ postgres_user }}"
+        login_password: "{{ postgres_password }}"
+        port: 5432
+      changed_when: false
+      register: current_search_path
+
+    - name: Verificar timezone actual
+      community.postgresql.postgresql_query:
+        db: "{{ db_name }}"
+        query: "SHOW timezone;"
+        login_host: "{{ ansible_host }}"
+        login_user: "{{ postgres_user }}"
+        login_password: "{{ postgres_password }}"
+        port: 5432
+      changed_when: false
+      register: current_timezone
+
+    - name: Mostrar configuración actual
+      ansible.builtin.debug:
+        msg:
+          - "╔═══════════════════════════════════════════════════════════════"
+          - "║                      CONFIGURACION ACTUAL                     "
+          - "╠═══════════════════════════════════════════════════════════════"
+          - "║ Search path actual: {{ current_search_path.query_result[0].search_path }}"
+          - "║ Timezone actual: {{ current_timezone.query_result[0].TimeZone }}"
+          - "╠═══════════════════════════════════════════════════════════════"
+          - "║ Search path esperado: {{ db_schema }}, public"
+          - "║ Timezone esperado: {{ db_timezone }}"
+          - "╚═══════════════════════════════════════════════════════════════"
+
+- name: Aplicar configuraciones
+  block:
+    - name: Configurar search_path
+      community.postgresql.postgresql_query:
+        db: postgres
+        query: |
+          ALTER DATABASE "{{ db_name }}" SET search_path TO "{{ db_schema }}", public;
+        login_host: "{{ ansible_host }}"
+        login_user: "{{ postgres_user }}"
+        login_password: "{{ postgres_password }}"
+        port: 5432
+      when: current_search_path.query_result[0].search_path != db_schema + ', public'
+
+    - name: Configurar TimeZone
+      community.postgresql.postgresql_query:
+        db: postgres
+        query: |
+          ALTER DATABASE "{{ db_name }}" SET timezone TO "{{ db_timezone }}";
+        login_host: "{{ ansible_host }}"
+        login_user: "{{ postgres_user }}"
+        login_password: "{{ postgres_password }}"
+        port: 5432
+      when: current_timezone.query_result[0].TimeZone != db_timezone
+
+- name: Verificar si las tablas existen
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    query: |
+      SELECT COUNT(*) as count
+      FROM information_schema.tables
+      WHERE table_schema = '{{ db_schema }}'
+      AND table_type = 'BASE TABLE';
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    port: 5432
+  register: table_check

@@ -1,0 +1,49 @@
+---
+# Orquestador principal del rol database_init
+- name: Inicialización de Base de Datos
+  block:
+    # Paso 1: Prerrequisitos
+    - name: Instalar prerrequisitos
+      ansible.builtin.include_tasks: prerequisites.yml
+      tags: [prerequisites]
+
+    # Paso 2: Verificar líder
+    - name: Verificar nodo líder Patroni
+      ansible.builtin.include_tasks: check_leader.yml
+      tags: [leader_check]
+
+    # Paso 3: Ejecutar solo en líder
+    - name: Ejecutar tareas en nodo líder
+      when: is_leader | bool
+      block:
+        # Crear base de datos
+        - name: Crear y configurar base de datos
+          ansible.builtin.include_tasks: create_database.yml
+          tags: [database_creation]
+
+        # Configurar base de datos
+        - name: Configurar parámetros de base de datos
+          ansible.builtin.include_tasks: configure_database.yml
+          tags: [database_config]
+
+        # Crear estructura
+        - name: Crear estructura de tablas
+          ansible.builtin.include_tasks: create_tables.yml
+          when: table_check.query_result[0].count | int == 0
+          tags: [table_creation]
+
+        # Cargar datos
+        - name: Cargar datos iniciales
+          ansible.builtin.include_tasks: load_data.yml
+          tags: [data_loading]
+
+    # Paso 4: Generar informe
+    - name: Generar informe final
+      ansible.builtin.include_tasks: generate_report.yml
+      when: is_leader | bool
+      tags: [report]
+
+  rescue:
+    - name: Notificar fallo en la inicialización
+      ansible.builtin.fail:
+        msg: "Fallo en la inicialización: {{ ansible_failed_result.msg | default('Error desconocido') }}"

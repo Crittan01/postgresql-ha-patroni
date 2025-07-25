@@ -1,0 +1,95 @@
+---
+- name: Verificar estado de datos
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    query: |
+      WITH data_counts AS (
+        SELECT
+          (SELECT COUNT(*) FROM {{ db_schema }}.document_types) as document_types,
+          (SELECT COUNT(*) FROM {{ db_schema }}.formalities) as formalities,
+          (SELECT COUNT(*) FROM {{ db_schema }}.metadata) as metadata,
+          (SELECT COUNT(*) FROM {{ db_schema }}.template_labels) as template_labels,
+          (SELECT COUNT(*) FROM {{ db_schema }}.templates) as templates
+      )
+      SELECT
+        document_types + formalities + metadata + template_labels + templates as total_count,
+        document_types, formalities, metadata, template_labels, templates
+      FROM data_counts;
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    port: 5432
+  register: data_status
+
+- name: Cargar scripts SQL si no hay datos
+  when: data_status.query_result[0].total_count | int == 0
+  block:
+    - name: Definir scripts SQL
+      ansible.builtin.set_fact:
+        sql_files:
+          - src: "1_formalities_1.sql"
+            dest: "/tmp/1_formalities_1.sql"
+            name: "formalities"
+          - src: "2_templates.sql"
+            dest: "/tmp/2_templates.sql"
+            name: "templates"
+          - src: "3_template_labels_1.sql"
+            dest: "/tmp/3_template_labels_1.sql"
+            name: "template_labels"
+
+    - name: Copiar scripts SQL al servidor remoto
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: "0644"
+      register: sql_copy
+      loop: "{{ sql_files }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Ejecutar scripts SQL
+      community.postgresql.postgresql_script:
+        db: "{{ db_name }}"
+        path: "{{ item.dest }}"
+        login_host: "{{ ansible_host }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        port: 5432
+        encoding: UTF8
+        search_path:
+          - "{{ db_schema }}"
+          - public
+      register: script_results
+      loop: "{{ sql_files }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Mostrar resultado de ejecución
+      ansible.builtin.debug:
+        msg: "Script {{ item.item.name }} ejecutado exitosamente"
+      loop: "{{ script_results.results }}"
+      when:
+        - script_results is defined
+        - item is succeeded
+      loop_control:
+        label: "{{ item.item.name | default('script') }}"
+
+  rescue:
+    - name: Mostrar error detallado
+      ansible.builtin.debug:
+        msg:
+          - "Error ejecutando scripts SQL"
+          - "Mensaje: {{ ansible_failed_result.msg | default('Error desconocido') }}"
+          - "Tarea fallida: {{ ansible_failed_task.name | default('Desconocida') }}"
+
+    - name: Error en carga de datos
+      ansible.builtin.fail:
+        msg: "Error cargando datos: {{ ansible_failed_result.msg }}"
+
+  always:
+    - name: Limpiar archivos temporales
+      ansible.builtin.file:
+        path: "{{ item.dest }}"
+        state: absent
+      loop: "{{ sql_files | default([]) }}"
+      when: sql_files is defined
