@@ -1,10 +1,10 @@
 # Database Init Role
 
-## 📋 Descripción
+## Descripción
 
 Este rol de Ansible automatiza la inicialización completa de una base de datos PostgreSQL en un cluster Patroni de alta disponibilidad. El rol detecta automáticamente el nodo líder del cluster y ejecuta todas las operaciones solo en ese nodo para mantener la consistencia.
 
-## 🚀 Características
+## Características
 
 - ✅ Detección automática del nodo líder Patroni
 - ✅ Creación de usuario, base de datos y schema
@@ -15,7 +15,7 @@ Este rol de Ansible automatiza la inicialización completa de una base de datos 
 - ✅ Manejo robusto de errores con rescue blocks
 - ✅ Idempotencia completa
 
-## 📦 Requisitos
+## Requisitos
 
 ### Sistema Operativo
 
@@ -39,7 +39,7 @@ collections:
 
 - `python3-psycopg2`
 
-## 📊 Variables del Rol
+## Variables del Rol
 
 ### Defaults (`defaults/main.yml`)
 
@@ -59,7 +59,7 @@ collections:
 | `postgres_password` | Contraseña del usuario postgres      | `MySecurePass123` |
 | `ansible_host`      | IP del host PostgreSQL               | `192.168.20.80`   |
 
-## 📁 Estructura del Rol
+## Estructura del Rol
 
 ```
 database_init/
@@ -83,7 +83,7 @@ database_init/
 └── README.md
 ```
 
-## 🎯 Ejemplo de Uso
+## Ejemplo de Uso
 
 ### Playbook básico
 
@@ -113,7 +113,7 @@ rocky9node1 ansible_host=192.168.20.80
 rocky9node2 ansible_host=192.168.20.82
 ```
 
-## 🏷️ Tags Disponibles
+## Tags Disponibles
 
 | Tag                 | Descripción                     |
 | ------------------- | ------------------------------- |
@@ -148,7 +148,7 @@ graph TD
     L --> Z
 ```
 
-## 📝 Estructura de Tablas
+## Estructura de Tablas
 
 El rol crea las siguientes tablas:
 
@@ -179,7 +179,7 @@ El rol crea las siguientes tablas:
 - Primary Key: `(template_name, template_version, name)`
 - Foreign Key: `(template_name, template_version)` → `templates(name, version)`
 
-## 🔧 Handlers
+## Handlers
 
 Los handlers se ejecutan automáticamente después de crear las tablas para agregar:
 
@@ -188,7 +188,7 @@ Los handlers se ejecutan automáticamente después de crear las tablas para agre
 - Foreign Keys
 - Índices
 
-## 📊 Informe de Salida
+## Informe de Salida
 
 Al finalizar, el rol genera un informe detallado que incluye:
 
@@ -212,7 +212,7 @@ Al finalizar, el rol genera un informe detallado que incluye:
 ╚═══════════════════════════════════════════════════════════════════
 ```
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Error: "No se puede conectar a PostgreSQL"
 
@@ -231,7 +231,7 @@ Al finalizar, el rol genera un informe detallado que incluye:
 - Verificar permisos de los archivos
 - Revisar sintaxis SQL en los scripts
 
-## 🔒 Seguridad
+## Seguridad
 
 - Use Ansible Vault para las contraseñas:
   ```bash
