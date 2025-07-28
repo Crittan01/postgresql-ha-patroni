@@ -63,6 +63,7 @@
       loop: "{{ sql_files }}"
       loop_control:
         label: "{{ item.name }}"
+      no_log: true
 
     - name: Mostrar resultado de ejecución
       ansible.builtin.debug:

@@ -1,0 +1,66 @@
+---
+- name: Aplicar todas las constraints
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    query: |
+      -- FASE 1: Primary Keys
+      ALTER TABLE {{ db_schema }}.document_types
+      ADD CONSTRAINT document_types_pkey PRIMARY KEY (name);
+
+      ALTER TABLE {{ db_schema }}.formalities
+      ADD CONSTRAINT formalities_pkey PRIMARY KEY (name);
+
+      ALTER TABLE {{ db_schema }}.metadata
+      ADD CONSTRAINT metadata_pkey PRIMARY KEY (name);
+
+      ALTER TABLE {{ db_schema }}.templates
+      ADD CONSTRAINT templates_pkey PRIMARY KEY (name, version);
+
+      ALTER TABLE {{ db_schema }}.template_labels
+      ADD CONSTRAINT template_labels_pkey
+      PRIMARY KEY (template_name, template_version, name);
+
+      -- FASE 2: Check Constraints
+      ALTER TABLE {{ db_schema }}.document_types
+      ADD CONSTRAINT document_types_lifecycle_status_check
+      CHECK (lifecycle_status IN ('PUBLISHED', 'DELETED'));
+
+      ALTER TABLE {{ db_schema }}.formalities
+      ADD CONSTRAINT formalities_lifecycle_status_check
+      CHECK (lifecycle_status IN ('PUBLISHED', 'ARCHIVED', 'DELETED'));
+
+      ALTER TABLE {{ db_schema }}.templates
+      ADD CONSTRAINT templates_lifecycle_status_check
+      CHECK (lifecycle_status IN ('PUBLISHED', 'ARCHIVED', 'DELETED'));
+
+      ALTER TABLE {{ db_schema }}.templates
+      ADD CONSTRAINT templates_type_check
+      CHECK (type IN ('PDF', 'JASPER'));
+
+      ALTER TABLE {{ db_schema }}.template_labels
+      ADD CONSTRAINT template_labels_value_type_check
+      CHECK (value_type IN ('ALPHANUMERIC', 'ALPHABETIC', 'NUMBER',
+                           'BOOLEAN', 'DATE', 'IMAGE', 'CONTRACT', 'CASE'));
+
+      -- FASE 3: Foreign Keys
+      ALTER TABLE {{ db_schema }}.metadata
+      ADD CONSTRAINT fk_metadata_document_types
+      FOREIGN KEY (document_type_name)
+      REFERENCES {{ db_schema }}.document_types(name);
+
+      ALTER TABLE {{ db_schema }}.template_labels
+      ADD CONSTRAINT fk_template_labels_templates
+      FOREIGN KEY (template_name, template_version)
+      REFERENCES {{ db_schema }}.templates(name, version);
+
+      -- FASE 4: Índices (estos SÍ soportan IF NOT EXISTS)
+      CREATE INDEX IF NOT EXISTS idx_metadata_document_type
+      ON {{ db_schema }}.metadata (document_type_name);
+
+      CREATE INDEX IF NOT EXISTS fk_template_labels_templates_idx
+      ON {{ db_schema }}.template_labels (template_name, template_version);
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    port: 5432
+  failed_when: false # No fallar si las constraints ya existen

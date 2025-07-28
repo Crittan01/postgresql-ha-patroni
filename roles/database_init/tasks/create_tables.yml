@@ -32,7 +32,7 @@
     port: 5432
     state: present
   register: table_created
-  notify: Agregar constraint document_types
+#  notify: Agregar constraint document_types
 
 # Tabla formalities
 - name: Crear tabla formalities
@@ -51,7 +51,7 @@
     login_user: "{{ db_user }}"
     login_password: "{{ db_password }}"
     port: 5432
-  notify: Agregar constraints formalities
+#  notify: Agregar constraints formalities
 
 # Tabla metadata
 - name: Crear tabla metadata
@@ -70,7 +70,7 @@
     login_user: "{{ db_user }}"
     login_password: "{{ db_password }}"
     port: 5432
-  notify: Agregar constraints metadata
+#  notify: Agregar constraints metadata
 
 # Tabla template_labels
 - name: Crear tabla template_labels
@@ -94,7 +94,7 @@
     login_user: "{{ db_user }}"
     login_password: "{{ db_password }}"
     port: 5432
-  notify: Agregar constraints template_labels
+#  notify: Agregar constraints template_labels
 
 # Tabla templates
 - name: Crear tabla templates
@@ -118,4 +118,9 @@
     login_user: "{{ db_user }}"
     login_password: "{{ db_password }}"
     port: 5432
-  notify: Agregar constraints templates
+#  notify: Agregar constraints templates
+
+# Aplicar constraints
+- name: Aplicar constraints
+  ansible.builtin.include_tasks: apply_constraints.yml
+  tags: [apply_constraints]
