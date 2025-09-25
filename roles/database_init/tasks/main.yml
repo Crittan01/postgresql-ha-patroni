@@ -16,32 +16,49 @@
     - name: Ejecutar tareas en nodo líder
       when: is_leader | bool
       block:
-        # Crear base de datos
-        - name: Crear y configurar base de datos
-          ansible.builtin.include_tasks: create_database.yml
-          tags: [database_creation]
+        # Verificar si la BD existe
+        - name: Verificar existencia de base de datos
+          ansible.builtin.include_tasks: check_database_exists.yml
+          tags: [database_check]
 
-        # Configurar base de datos
-        - name: Configurar parámetros de base de datos
-          ansible.builtin.include_tasks: configure_database.yml
-          tags: [database_config]
+        # Solo continuar si should_create_db es true
+        - name: Proceder con creación de base de datos
+          when: should_create_db | default(true) | bool
+          block:
+            # Crear base de datos
+            - name: Crear y configurar base de datos
+              ansible.builtin.include_tasks: create_database.yml
+              tags: [database_creation]
 
-        # Crear estructura
-        - name: Crear estructura de tablas
-          ansible.builtin.include_tasks: create_tables.yml
-          when: table_check.query_result[0].count | int == 0
-          tags: [table_creation]
+            # Configurar base de datos
+            - name: Configurar parámetros de base de datos
+              ansible.builtin.include_tasks: configure_database.yml
+              tags: [database_config]
 
-        # Cargar datos
-        - name: Cargar datos iniciales
-          ansible.builtin.include_tasks: load_data.yml
-          tags: [data_loading]
+            # Crear estructura
+            - name: Crear estructura de tablas
+              ansible.builtin.include_tasks: create_tables.yml
+              when: table_check.query_result[0].count | int == 0
+              tags: [table_creation]
 
-    # Paso 4: Generar informe
-    - name: Generar informe final
-      ansible.builtin.include_tasks: generate_report.yml
-      when: is_leader | bool
-      tags: [report]
+            # Cargar datos
+            - name: Cargar datos iniciales
+              ansible.builtin.include_tasks: load_data.yml
+              tags: [data_loading]
+
+            # Generar informe
+            - name: Generar informe final
+              ansible.builtin.include_tasks: generate_report.yml
+              tags: [report]
+
+        # Si no se debe crear, mostrar mensaje final
+        - name: Mostrar mensaje de finalización sin cambios
+          ansible.builtin.debug:
+            msg: |
+              ╔═══════════════════════════════════════════════════════════════
+              ║ Proceso finalizado sin realizar cambios en la base de datos
+              ╚═══════════════════════════════════════════════════════════════
+          when: not should_create_db | default(true) | bool
 
   rescue:
     - name: Notificar fallo en la inicialización

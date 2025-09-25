@@ -1,9 +1,13 @@
 ---
+# apply_constraints.yml
 - name: Aplicar todas las constraints
   community.postgresql.postgresql_query:
     db: "{{ db_name }}"
     query: |
       -- FASE 1: Primary Keys
+      ALTER TABLE {{ db_schema }}.value_types
+      ADD CONSTRAINT value_types_pkey PRIMARY KEY (name);
+
       ALTER TABLE {{ db_schema }}.document_types
       ADD CONSTRAINT document_types_pkey PRIMARY KEY (name);
 
@@ -37,11 +41,6 @@
       ADD CONSTRAINT templates_type_check
       CHECK (type IN ('PDF', 'JASPER'));
 
-      ALTER TABLE {{ db_schema }}.template_labels
-      ADD CONSTRAINT template_labels_value_type_check
-      CHECK (value_type IN ('ALPHANUMERIC', 'ALPHABETIC', 'NUMBER',
-                           'BOOLEAN', 'DATE', 'IMAGE', 'CONTRACT', 'CASE'));
-
       -- FASE 3: Foreign Keys
       ALTER TABLE {{ db_schema }}.metadata
       ADD CONSTRAINT fk_metadata_document_types
@@ -53,12 +52,22 @@
       FOREIGN KEY (template_name, template_version)
       REFERENCES {{ db_schema }}.templates(name, version);
 
+      -- FK: template_labels -> value_types
+      ALTER TABLE {{ db_schema }}.template_labels
+      ADD CONSTRAINT fk_template_labels_value_types
+      FOREIGN KEY (value_type)
+      REFERENCES {{ db_schema }}.value_types(name);
+
       -- FASE 4: Índices (estos SÍ soportan IF NOT EXISTS)
       CREATE INDEX IF NOT EXISTS idx_metadata_document_type
       ON {{ db_schema }}.metadata (document_type_name);
 
       CREATE INDEX IF NOT EXISTS fk_template_labels_templates_idx
       ON {{ db_schema }}.template_labels (template_name, template_version);
+
+      -- ÍNDICE para value_types
+      CREATE INDEX IF NOT EXISTS idx_template_labels_value_type
+      ON {{ db_schema }}.template_labels (value_type);
     login_host: "{{ ansible_host }}"
     login_user: "{{ db_user }}"
     login_password: "{{ db_password }}"

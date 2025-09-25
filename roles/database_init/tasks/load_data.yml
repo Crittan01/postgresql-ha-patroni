@@ -1,10 +1,12 @@
 ---
+# load_data.yml
 - name: Verificar estado de datos
   community.postgresql.postgresql_query:
     db: "{{ db_name }}"
     query: |
       WITH data_counts AS (
         SELECT
+          (SELECT COUNT(*) FROM {{ db_schema }}.value_types) as value_types,
           (SELECT COUNT(*) FROM {{ db_schema }}.document_types) as document_types,
           (SELECT COUNT(*) FROM {{ db_schema }}.formalities) as formalities,
           (SELECT COUNT(*) FROM {{ db_schema }}.metadata) as metadata,
@@ -12,8 +14,8 @@
           (SELECT COUNT(*) FROM {{ db_schema }}.templates) as templates
       )
       SELECT
-        document_types + formalities + metadata + template_labels + templates as total_count,
-        document_types, formalities, metadata, template_labels, templates
+        value_types + document_types + formalities + metadata + template_labels + templates as total_count,
+        value_types, document_types, formalities, metadata, template_labels, templates
       FROM data_counts;
     login_host: "{{ ansible_host }}"
     login_user: "{{ db_user }}"
@@ -27,6 +29,9 @@
     - name: Definir scripts SQL
       ansible.builtin.set_fact:
         sql_files:
+          - src: "0_value_types.sql"
+            dest: "/tmp/0_value_types.sql"
+            name: "value_types"
           - src: "1_formalities_1.sql"
             dest: "/tmp/1_formalities_1.sql"
             name: "formalities"

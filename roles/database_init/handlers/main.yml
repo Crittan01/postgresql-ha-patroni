@@ -1,4 +1,11 @@
-# ---
+---
+- name: Mostrar estado de creacion
+  ansible.builtin.debug:
+    msg: |
+      ╔═══════════════════════════════════════════════════════════════
+      ║ CREACION EXITOSA: Base de datos '{{ db_name }}'.
+      ╚═══════════════════════════════════════════════════════════════
+
 # # handlers file for roles/database_init
 # - name: Agregar constraint document_types
 #   community.postgresql.postgresql_query:

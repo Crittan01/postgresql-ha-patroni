@@ -1,5 +1,5 @@
 ---
-# generate_report
+# generate_report.yml
 - name: Forzar ejecución de handlers antes del informe
   ansible.builtin.meta: flush_handlers
 
@@ -11,6 +11,12 @@
         db: "{{ db_name }}"
         query: |
           WITH table_counts AS (
+            SELECT
+              'value_types' as tabla,
+              COUNT(*) as registros,
+              MAX(creation_date) as ultimo_registro
+            FROM {{ db_schema }}.value_types
+            UNION ALL
             SELECT
               'document_types' as tabla,
               COUNT(*) as registros,

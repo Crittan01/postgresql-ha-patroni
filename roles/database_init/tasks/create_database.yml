@@ -11,7 +11,7 @@
     port: 5432
     state: present
 
-- name: Crear la base de datos si no existe
+- name: Crear la base de datos
   community.postgresql.postgresql_db:
     name: "{{ db_name }}"
     owner: "{{ db_user }}"
@@ -22,6 +22,7 @@
     port: 5432
     template: template0
     state: present
+  notify: Mostrar estado de creacion
 
 - name: Crear Schema si no existe
   community.postgresql.postgresql_schema:

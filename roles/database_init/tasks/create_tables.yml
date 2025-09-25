@@ -13,6 +13,25 @@
     login_password: "{{ db_password }}"
     port: 5432
 
+- name: Crear tabla 'value_types'
+  community.postgresql.postgresql_table:
+    db: "{{ db_name }}"
+    name: value_types
+    owner: "{{ db_user }}"
+    columns:
+      - name character varying(50) NOT NULL
+      - regex character varying(100) NOT NULL
+      - description character varying(255) NOT NULL
+      - author character varying(50) NOT NULL
+      - creation_date integer NOT NULL
+      - last_update integer
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    port: 5432
+    state: present
+  register: value_table_created
+
 - name: Crear tablas 'document_types'
   community.postgresql.postgresql_table:
     db: "{{ db_name }}"

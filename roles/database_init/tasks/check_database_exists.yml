@@ -1,0 +1,155 @@
+---
+# check_database_exists.yml
+# Esta tarea verifica si la base de datos existe y maneja la interacción con el usuario
+
+- name: Verificar si la base de datos existe
+  community.postgresql.postgresql_info:
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    port: 5432
+    filter:
+      - databases
+  register: pg_info
+
+- name: Establecer variable si la BD existe
+  ansible.builtin.set_fact:
+    db_exists: "{{ db_name in pg_info.databases }}"
+
+- name: Mostrar estado de la base de datos
+  ansible.builtin.debug:
+    msg: |
+      ╔═══════════════════════════════════════════════════════════════
+      ║ Base de datos '{{ db_name }}' {% if db_exists %}YA EXISTE{% else %}NO EXISTE{% endif %} en el servidor
+      ╚═══════════════════════════════════════════════════════════════
+
+# Si la BD existe, preguntar al usuario
+- name: Manejo de base de datos existente
+  when: db_exists | bool
+  block:
+    - name: Pausar y preguntar al usuario sobre sobrescribir
+      ansible.builtin.pause:
+        prompt: |
+
+          ╔═══════════════════════════════════════════════════════════════
+          ║                           ADVERTENCIA
+          ╠═══════════════════════════════════════════════════════════════
+          ║ La base de datos '{{ db_name }}' ya existe.
+          ║
+          ║ ¿Desea ELIMINAR la base de datos actual y crear una nueva?
+          ║
+          ║ NOTA: Esta acción eliminará TODOS los datos existentes.
+          ╠═══════════════════════════════════════════════════════════════
+          ║ Escriba 'si' para ELIMINAR y recrear la BD
+          ║ Escriba 'no' o presione Enter para CANCELAR
+          ║ ¡ Cualquier otra respuesta cancelará la operación !
+          ╚═══════════════════════════════════════════════════════════════
+
+          Respuesta [no]
+      register: user_response
+
+    - name: Establecer decisión del usuario
+      ansible.builtin.set_fact:
+        overwrite_db: "{{ user_response.user_input | default('no') | lower == 'si' }}"
+
+    - name: Mostrar decisión del usuario
+      ansible.builtin.debug:
+        msg: |
+          {% if overwrite_db %}
+          ╔═══════════════════════════════════════════════════════════════
+          ║ CONFIRMO Usuario: SE ELIMINARÁ Y RECREARÁ LA BASE DE DATOS
+          ╚═══════════════════════════════════════════════════════════════
+          {% else %}
+          ╔═══════════════════════════════════════════════════════════════
+          ║ CANCELO Usuario: NO se modificará la base de datos
+          ╚═══════════════════════════════════════════════════════════════
+          {% endif %}
+
+    - name: Terminar ejecución si el usuario no acepta sobrescribir
+      ansible.builtin.fail:
+        msg: |
+          ╔═══════════════════════════════════════════════════════════════
+          ║ Ejecución CANCELADA por el usuario.
+          ║ La base de datos '{{ db_name }}' no fue modificada.
+          ╚═══════════════════════════════════════════════════════════════
+      when: not overwrite_db
+
+    # Si el usuario acepta, eliminar la BD existente
+    - name: Eliminar base de datos existente
+      when: overwrite_db | bool
+      block:
+        - name: Confirmar eliminación una vez más (seguridad adicional)
+          ansible.builtin.pause:
+            prompt: |
+
+              ╔═══════════════════════════════════════════════════════════════
+              ║                      CONFIRMACIÓN FINAL
+              ╠═══════════════════════════════════════════════════════════════
+              ║ Está a punto de ELIMINAR PERMANENTEMENTE:
+              ║ Base de datos: {{ db_name }}
+              ║
+              ║ Esta acción NO SE PUEDE DESHACER.
+              ╠═══════════════════════════════════════════════════════════════
+              ║ Escriba 'ELIMINAR' (en mayúsculas) para confirmar
+              ║ ¡ Cualquier otra respuesta cancelará la operación !
+              ╚═══════════════════════════════════════════════════════════════
+
+              Respuesta
+          register: final_confirmation
+
+        - name: Verificar confirmación final
+          ansible.builtin.set_fact:
+            final_confirm: "{{ final_confirmation.user_input == 'ELIMINAR' }}"
+
+        - name: Cancelar si no se confirma
+          ansible.builtin.fail:
+            msg: |
+              ╔═══════════════════════════════════════════════════════════════
+              ║ Operación CANCELADA - Confirmación final no recibida
+              ║ La base de datos NO fue eliminada
+              ╚═══════════════════════════════════════════════════════════════
+          when: not final_confirm
+
+        - name: Terminar conexiones activas a la BD
+          community.postgresql.postgresql_query:
+            db: postgres
+            query: |
+              SELECT pg_terminate_backend(pid)
+              FROM pg_stat_activity
+              WHERE datname = '{{ db_name }}'
+              AND pid <> pg_backend_pid();
+            login_host: "{{ ansible_host }}"
+            login_user: "{{ postgres_user }}"
+            login_password: "{{ postgres_password }}"
+            port: 5432
+          failed_when: false
+
+        - name: Eliminar la base de datos
+          community.postgresql.postgresql_db:
+            name: "{{ db_name }}"
+            state: absent
+            login_host: "{{ ansible_host }}"
+            login_user: "{{ postgres_user }}"
+            login_password: "{{ postgres_password }}"
+            port: 5432
+          register: db_dropped
+
+        - name: Confirmar eliminación exitosa
+          ansible.builtin.debug:
+            msg: |
+              ╔═══════════════════════════════════════════════════════════════
+              ║ ELIMINACION EXITOSA de Base de datos '{{ db_name }}'.
+              ║ Procediendo con la creación de la nueva base de datos...
+              ╚═══════════════════════════════════════════════════════════════
+
+# Si no existe o fue eliminada, continuar con la creación
+- name: Establecer flag para proceder con creación
+  ansible.builtin.set_fact:
+    should_create_db: "{{ not db_exists or (db_exists and overwrite_db | default(false)) }}"
+
+- name: Mostrar siguiente paso
+  ansible.builtin.debug:
+    msg: |
+      ╔═══════════════════════════════════════════════════════════════
+      ║ {% if should_create_db %} Procediendo con la CREACION de la base de datos. {% else %} NO se realizará ninguna acción {% endif %}
+  when: should_create_db is defined
